@@ -1,0 +1,604 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <title>Plate & Case Builder</title>
+    <link rel="stylesheet" type="text/css" href="{{ static_url('plugins/jquery-ui-1.11.2.custom/jquery-ui.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ static_url('plugins/jquery-ui-1.11.2.custom/jquery-ui.structure.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ static_url('plugins/jquery-ui-1.11.2.custom/jquery-ui.theme.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ static_url('css/iphone-toggle.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ static_url('css/style.css') }}">
+    <script type="text/javascript" src="{{ static_url('js/three.min.js') }}"></script>
+    <script type="text/javascript" src="{{ static_url('js/OrbitControls.js') }}"></script>
+    <script type="text/javascript" src="{{ static_url('js/json2.js') }}"></script>
+    <script type="text/javascript" src="{{ static_url('js/jsonl.min.js') }}"></script>
+    <script type="text/javascript" src="{{ static_url('plugins/jquery-ui-1.11.2.custom/external/jquery/jquery.js') }}"></script>
+    <script type="text/javascript" src="{{ static_url('plugins/jquery-ui-1.11.2.custom/jquery-ui.min.js') }}"></script>
+    <script type="text/javascript">
+      var cad = {}; 
+
+      $(function() {
+        $('#accordion').accordion({
+          heightStyle: 'content',
+          /*disabled: true,*/
+          animate: false
+        });
+
+        $('#case-type').on('change', function() {
+          var selected = $(this).val();
+          switch(selected) {
+            case '':
+              $('#mount-holes-wrapper').hide();
+              $('#width-padding-wrapper').show();
+              $('#height-padding-wrapper').show();
+              break;
+            case 'poker':
+              $('#width-padding-toggle').prop('checked', false).trigger('change');
+              $('#height-padding-toggle').prop('checked', false).trigger('change');
+              $('#mount-holes-wrapper').hide();
+              $('#width-padding-wrapper').hide();
+              $('#height-padding-wrapper').hide();
+              break;
+            case 'sandwich': // show the mount holes row and check the padding options
+              $('#mount-holes-wrapper').show();
+              $('#width-padding-wrapper').show();
+              $('#height-padding-wrapper').show();
+              $('#width-padding-toggle').prop('checked', true).trigger('change');
+              $('#height-padding-toggle').prop('checked', true).trigger('change');
+              break;
+          }
+        });
+
+        $('#width-padding-toggle').on('change', function() {
+          if ($(this).is(':checked')) {
+            $('#width-padding').show();
+          } else {
+            $('#width-padding').hide();
+          }
+        });
+
+        $('#height-padding-toggle').on('change', function() {
+          if ($(this).is(':checked')) {
+            $('#height-padding').show();
+          } else {
+            $('#height-padding').hide();
+          }
+        });
+
+        $('#fillet-toggle').on('change', function() {
+          if ($(this).is(':checked')) {
+            $('#fillet').show();
+          } else {
+            $('#fillet').hide();
+          }
+        });
+
+        $('#thickness-toggle').on('change', function() {
+          if ($(this).is(':checked')) {
+            $('#thickness').show();
+          } else {
+            $('#thickness').hide();
+          }
+        });
+
+        $('#kerf-toggle').on('change', function() {
+          if ($(this).is(':checked')) {
+            $('#kerf').show();
+          } else {
+            $('#kerf').hide();
+          }
+        });
+
+        $('.help').on('click', function() {
+          dialog = '#'+$(this).data('id');
+          $(dialog).dialog({
+            modal: true
+          });
+        });
+
+        // setup defaults...
+        $('#case-type').trigger('change');
+        $('#width-padding-toggle').prop('checked', false).trigger('change');
+        $('#height-padding-toggle').prop('checked', false).trigger('change');
+        $('#fillet-toggle').prop('checked', false).trigger('change');
+        $('#thickness-toggle').prop('checked', false).trigger('change');
+        $('#kerf-toggle').prop('checked', false).trigger('change');
+        $('#svg-toggle').prop('checked', false).trigger('change');
+
+        // handle form validation and submit...
+        $('#options-form').on('submit', function (e) {
+          e.preventDefault();
+          var has_error = false;
+          var error_els = [];
+          var data = {};
+
+          // clean up existing errors since we are doing a new validation
+          $('#config-options .input-style').removeClass('ui-state-error');
+          $('.error-msg').html('').hide();
+
+          // add the values that don't need validation to data
+          data['switch-type'] = $('input[name=switch-type]:checked').val();
+          data['stab-type'] = $('#stab-type').val();
+          data['case-type'] = $('#case-type').val();
+
+          var layout = $('#layout').val();
+          if (layout == '') {
+            $('#layout').addClass('ui-state-error');
+            $('#layout').siblings('.error-msg').append('<div>Ummm, derp???  You need a layout in order to cut a plate.</div>');
+            error_els.push('#layout');
+            has_error = true;
+          } else {
+            try {
+              data['layout'] = jsonl.parse("["+layout+"]");
+            } catch(err) {
+              $('#layout').addClass('ui-state-error');
+              $('#layout').siblings('.error-msg').append('<div>'+err.message+'</div>');
+              error_els.push('#layout');
+              has_error = true;
+            }
+          }
+
+          // validate requirements for each case type
+          var holes = $('#mount-holes-num').val().replace(/[^\d.-]/g, '');
+          var size = $('#mount-holes-size').val().replace(/[^\d.-]/g, '');
+          var w_pad = $('#width-padding').val().replace(/[^\d.-]/g, '');
+          var h_pad = $('#height-padding').val().replace(/[^\d.-]/g, '');
+          switch($('#case-type').val()) {
+            case 'poker':
+              data['mount-holes-size'] = 5;
+              data['width-padding'] = -0.375; // 285.75mm => 285mm
+              data['height-padding'] = -0.325; // 95.25mm => 94.6mm
+              break;
+            case 'sandwich':
+              if (holes == '' || parseInt(holes) < 4 || (parseInt(holes) % 2 == 1)) {
+                $('#mount-holes-num').addClass('ui-state-error');
+                $('#mount-holes-num').siblings('.error-msg').append('<div>The number of mount holes is required and must be >= 4 and an even number for the Sandwich case.</div>');
+                error_els.push('#mount-holes-num');
+                has_error = true;
+              } else {
+                data['mount-holes-num'] = holes;
+              }
+
+              if (size == '') {
+                $('#mount-holes-size').addClass('ui-state-error');
+                $('#mount-holes-size').siblings('.error-msg').append('<div>The size of the mount holes is required and must a numerical value for the Sandwich case.</div>');
+                error_els.push('#mount-holes-size');
+                has_error = true;
+              } else {
+                data['mount-holes-size'] = size;
+              }
+
+              if (!$('#width-padding-toggle').is(':checked') || w_pad == '') {
+                $('#width-padding-toggle').prop('checked', true);
+                $('#width-padding').show();
+                $('#width-padding').addClass('ui-state-error');
+                $('#width-padding').siblings('.error-msg').append('<div>Width padding is required and must be a numerical value for a Sandwich case so there is space to put the mount holes.</div>');
+                error_els.push('#width-padding');
+                has_error = true;
+              } else {
+                if ($('#width-padding-toggle').is(':checked')) {
+                  data['width-padding'] = w_pad;
+                }
+              }
+
+              if (!$('#height-padding-toggle').is(':checked') || h_pad == '') {
+                $('#height-padding-toggle').prop('checked', true);
+                $('#height-padding').show();
+                $('#height-padding').addClass('ui-state-error');
+                $('#height-padding').siblings('.error-msg').append('<div>Height padding is required and must be a numerical value for a Sandwich case so there is space to put the mount holes.</div>');
+                error_els.push('#height-padding');
+                has_error = true;
+              } else {
+                if ($('#height-padding-toggle').is(':checked')) {
+                  data['height-padding'] = h_pad;
+                }
+              }
+              break;
+            default: // generic case of items that are required in other cases
+              if ($('#width-padding-toggle').is(':checked') && w_pad == '') {
+                $('#width-padding').addClass('ui-state-error');
+                $('#width-padding').siblings('.error-msg').append('<div>If width padding is turned on you need to specify a value.</div>');
+                error_els.push('#width-padding');
+                has_error = true;
+              } else {
+                if ($('#width-padding-toggle').is(':checked') && w_pad != '') {
+                  data['width-padding'] = w_pad;
+                }
+              }
+
+              if ($('#height-padding-toggle').is(':checked') && h_pad == '') {
+                $('#height-padding').addClass('ui-state-error');
+                $('#height-padding').siblings('.error-msg').append('<div>If height padding is turned on you need to specify a value.</div>');
+                error_els.push('#height-padding');
+                has_error = true;
+              } else {
+                if ($('#height-padding-toggle').is(':checked') && h_pad != '') {
+                  data['height-padding'] = h_pad;
+                }
+              }
+              break;
+          }
+
+          // optional for all
+          var fillet = $('#fillet').val().replace(/[^\d.-]/g, '')
+          if ($('#fillet-toggle').is(':checked') && fillet == '') {
+            $('#fillet').addClass('ui-state-error');
+            $('#fillet').siblings('.error-msg').append('<div>If plate corners is turned on you need to specify a radius value.</div>');
+            error_els.push('#fillet');
+            has_error = true;
+          } else {
+            if ($('#fillet-toggle').is(':checked') && fillet != '') {
+              data['fillet'] = fillet;
+            }
+          }
+
+          var thickness = $('#thickness').val().replace(/[^\d.-]/g, '')
+          if ($('#thickness-toggle').is(':checked') && thickness == '') {
+            $('#thickness').addClass('ui-state-error');
+            $('#thickness').siblings('.error-msg').append('<div>If plate thickness is turned on you need to specify a value.  If you turn it off, it will default to 1.5 (mm).</div>');
+            error_els.push('#thickness');
+            has_error = true;
+          } else {
+            if ($('#thickness-toggle').is(':checked') && thickness != '') {
+              data['thickness'] = thickness;
+            }
+          }
+
+          var kerf = $('#kerf').val().replace(/[^\d.-]/g, '')
+          if ($('#kerf-toggle').is(':checked') && kerf == '') {
+            $('#kerf').addClass('ui-state-error');
+            $('#kerf').siblings('.error-msg').append('<div>If kerf is turned on you need to enter a value for it.</div>');
+            error_els.push('#kerf');
+            has_error = true;
+          } else {
+            if ($('#kerf-toggle').is(':checked') && kerf != '') {
+              data['kerf'] = kerf;
+            }
+          }
+
+          if ($('#svg-toggle').is(':checked')) {
+            data['export_svg'] = true;
+          } else {
+            data['export_svg'] = false;
+          }
+
+          // either ERROR or SUBMIT
+          if (has_error) { // error
+            for (var i=0; i<error_els.length; i++) {
+              var error_el = $(error_els[i]).siblings('.error-msg');
+              error_el.show();
+            }
+            return false;
+          } else { // submit
+            $.ajax({
+              url: '/',
+              type: 'post',
+              dataType: 'json',
+              data: JSON.stringify(data),
+              beforeSend: function(jqXHR, settings) {
+                $('#accordion').accordion('option', 'active', 1);
+                $('#plate-draw-section').html('<div class="center">... Processing ...</div><div class="center" style="margin:.5em 0;"><img src="static/images/block-loader.gif" /></div><div class="center" style="font-size:50%">Depending on the complexity of the plate you are drawing this can take a while.  You might want to go get a coffee...</div>');
+              },
+              success: function(res, status, jqXHR) {
+                var width = 1022;
+                var height = 1022 * res['height'] / res['width'];
+                var instructions = 'Before getting a quote from <a href="https://www.bigbluesaw.com/" target="_blank">Big Blue Saw</a>, update the DXF file to use millimeters by opening it in <a href="http://librecad.org/" target="_blank">LibreCAD</a> and doing:<br /><code>Edit > Current Drawing Preferences > Units > Main Unit = Millimeters</code>, then <code>Save As</code> a <code>DXF 2007</code> file.';
+                $('#plate-draw-section').html('');
+                if (res['plates'].length > 0) {
+                  for (var p=0; p<res['plates'].length; p++) {
+                    var label = res['plates'][p];
+                    var id = label+'-layer-canvas';
+                    var cad_js;
+                    $('#plate-draw-section').append('<div id="'+id+'-wrapper" class="canvas-wrapper"><div id="'+id+'" class="canvas" style="width:'+width+'px; height:'+height+'px;"></div><div class="button-wrapper"></div></div>');
+                    if (res['exports'][label].length > 1) {
+                      $('#plate-draw-section #'+id+'-wrapper .button-wrapper').append('Download: ');
+                      for (var i=0; i<res['exports'][label].length; i++) {
+                        if (res['exports'][label][i]['name'] != 'js') {
+                          $('#plate-draw-section #'+id+'-wrapper .button-wrapper').append('<a class="button-style" href="'+res['exports'][label][i]['url']+'" download="">'+res['exports'][label][i]['name'].toUpperCase()+'</a>');
+                        } else {
+                          cad_js = res['exports'][label][i]['url']
+                        }
+                      }
+                      $('#plate-draw-section #'+id+'-wrapper .button-wrapper').append('&nbsp;&nbsp;<a onclick="cad[\''+label+'\'].reset(); return false;" href="javascript:void(0);">Reset View</a><div class="cad-instructions ui-state-highlight ui-corner-all">'+instructions+'</div>');
+                    }
+                    cad[label] = new CAD(id, cad_js, width, height);
+                    cad[label].init();
+                    cad[label].animate();
+                  }
+                }
+              },
+              error: function(jqXHR, status, error) {
+                console.log(error);
+                $('#plate-draw-section').html('<div class="center">The build process has encountered the following error.</div><div class="center">'+error+'</div>');
+              }
+            });
+          }
+        }); // end on submit
+      }); // end on load
+
+      function CAD(id, url, width, height) {
+        var _cad = this
+        this.id = id;
+        this.url = url;
+        this.width = width;
+        this.height = height;
+
+        this.init = function() {
+          _cad.camera = new THREE.PerspectiveCamera(40, _cad.width / _cad.height, 10, 10000);
+          _cad.camera.position.z = 1800;
+
+          _cad.controls = new THREE.OrbitControls(_cad.camera, document.getElementById(_cad.id));
+          _cad.controls.addEventListener('change', _cad.render);
+
+          _cad.scene = new THREE.Scene();
+          _cad.loader = new THREE.JSONLoader();
+
+          _cad.loader.load(_cad.url, function(geometry) {
+            _cad.mesh = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ color:0xffffff, ambient:0xdddddd, shading:THREE.FlatShading }));
+            _cad.mesh.scale.set(10, 10, 10);
+            _cad.mesh.position.y = 0;
+            _cad.mesh.position.x = 0;
+          });
+          _cad.loader.onLoadComplete = function() { 
+            _cad.scene.add(_cad.mesh); 
+            _cad.render(); // initial render because the objects arrive on the scene late
+          };
+
+          _cad.ambientLight = new THREE.AmbientLight(0x555555);
+          _cad.scene.add(_cad.ambientLight);
+
+          _cad.directionalLight = new THREE.DirectionalLight(0xffffff, 0.4);
+          _cad.directionalLight.position.set(0, 0, 1).normalize();
+          _cad.scene.add(_cad.directionalLight);
+
+          _cad.renderer = new THREE.WebGLRenderer({ alpha: true });
+          _cad.renderer.setSize(_cad.width, _cad.height);
+
+          _cad.container = document.getElementById(_cad.id);
+          _cad.container.appendChild(_cad.renderer.domElement);
+        }
+
+        this.animate = function() {
+          requestAnimationFrame(_cad.animate);
+          _cad.controls.update();
+        }
+
+        this.render = function() {
+          _cad.renderer.render(_cad.scene, _cad.camera);
+        }
+
+        this.reset = function() {
+          _cad.controls.object.position.x = 0;
+          _cad.controls.object.position.y = 0;
+          _cad.controls.object.position.z = 1800;
+          _cad.controls.center.x = 0;
+          _cad.controls.center.y = 0;
+          _cad.controls.center.z = 0;
+        }
+      }
+    </script>
+  </head>
+
+  <body>
+    <div id="wrapper">
+      <div id="donate">
+        <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
+          <input type="hidden" name="cmd" value="_s-xclick">
+          <input type="hidden" name="encrypted" value="-----BEGIN PKCS7-----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-----END PKCS7-----
+          ">
+          <input class="img" type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+          <img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+        </form>
+        <span data-id="donation-help" class="help">&nbsp;</span>
+        <div id="donation-help" class="help-dialog" title="Thank you for donating!">
+          I hope you are enjoying the tool.  I do my best to integrate community feedback and progressively improve the available features.  All of this is built in my spare time, so the process is slow, but hopefully valuable for everyone.  Please consider donating if you plan to make commercial plates using this tool.  Donations will be going towards things like, cutting test plates to validate cutout and kerf settings, and other such expenses.  Thank you for your support...<br />
+          - swill
+        </div>
+      </div>
+      <div id="content">
+        <div class="section-header">
+          <img src="{{ static_url('images/swillkb_logo.png') }}" /><br />
+          Plate & Case Builder
+        </div>
+        Generate the CAD files required to build a keyboard with any layout you specify...
+        <div class="disclaimer ui-state-highlight ui-corner-all">
+          <span class="ui-icon ui-icon-inline ui-icon-alert"></span><b>Disclaimer:</b> I have not had a chance to test these cutouts yet, so use at your own risk until I remove this disclaimer. 
+        </div>
+        <div id="accordion">
+          <h3>Configure the CAD to draw</h3>
+          <div id="plate-config-section" class="section">
+            <form id="options-form" action="/">
+              <div id="config-options" class="iphone-toggle-buttons">
+                <ul>
+                  <li>
+                    <label for="layout" class="label"><span>Plate Layout</span></label>
+                    <!--<input id="layout" class="input-style placeholder" name="layout" placeholder="www.keyboard-layout-editor.com permalink" />-->
+                    <textarea id="layout" class="input-style placeholder" name="layout" placeholder="www.keyboard-layout-editor.com Raw Data" rows="7" cols="50"></textarea>
+                    <span data-id="layout-help" class="help">&nbsp;</span>
+                    <div id="layout-help" class="help-dialog" title="Layout Help">
+                      <ol>
+                        <li>Go to <a href="http://www.keyboard-layout-editor.com" target="_blank">www.keyboard-layout-editor.com</a> and build your keyboard layout or pick from one of the existing presets.</li>
+                        <li>Click on the 'Raw data' tab below your layout and copy all of the text in that box.</li>
+                        <li>Paste the copied layout text into this textarea.</li>
+                      </ol>
+                      <br />
+                      <b>Additional Features</b><br />
+                      The following features can be applied by modifying the source copied from the keyboard layout editor.  All of these features are applied to individual keys by adding or modifying the object before the key.  EG: rotate switch for "Enter" would be done by entering {_r:90},"Enter".
+                      <ul>
+                        <li><b>{_t:&lt;0-2&gt;}:</b> Change switch cutout type.  Numbers are in the same order as the images.  EG: {_t:0},""</li>
+                        <li><b>{_s:&lt;0-2&gt;}:</b> Change stabilizer cutout type.  Numbers are in the same order as the dropdown list.  EG: {_s:2},""</li>
+                        <li><b>{_k:&lt;mm&gt;}:</b> Specify a kerf value for this specific switch/stabilizer cutout which overrides the default.  Values are in mm (without the unit).  EG: {_k:0.05},""</li>
+                        <li><b>{_r:&lt;degrees&gt;}:</b> Rotate the switch cutout independent of the stabilizer cutout (assuming there is one).  EG: {_r:90},""</li>
+                        <li><b>{_rs:&lt;degrees&gt;}:</b> Rotate the stabilizer cutout independent of the switch cutout.  EG: {_rs:180},""</li>
+                      </ul>
+                    </div>
+                    <div class="error-msg"></div>
+                  </li>
+                  <li style="margin-bottom:0 !important;">
+                    <span class="label">Switch Type</span>
+                    <label class="radio-label">
+                      <input type="radio" name="switch-type" value="0" /><img src="{{ static_url('images/switch_type_0.png') }}">
+                    </label>
+                    <label class="radio-label">
+                      <input type="radio" name="switch-type" value="1" checked="checked" /><img src="{{ static_url('images/switch_type_1.png') }}">
+                    </label>
+                    <label class="radio-label">
+                      <input type="radio" name="switch-type" value="2" /><img src="{{ static_url('images/switch_type_2.png') }}">
+                    </label>
+                    <!--<label class="radio-label">
+                      <input type="radio" name="switch-type" value="3" /><img src="{{ static_url('images/switch_type_3.png') }}">
+                    </label>-->
+                    <span data-id="switch-type-help" class="help">&nbsp;</span>
+                    <div id="switch-type-help" class="help-dialog" title="Switch Type Help">
+                      You have 3 different switch cutouts which you can choose from.  Keep in mind that the more complex the cutout, the more expensive the plate will be to cut.  I would strongly recommend the second option unless you have a reason not to choose it because it is affordable and both Cherry MX and Alps compatible and the MX switches can be opened.<br />
+                      <ul class="unstyle">
+                        <li><img src="{{ static_url('images/switch_type_0.png') }}" style="float:left;"> This is the standard cutout used by all non-custom keyboards.  This layout is the most inexpensive to cut, but also does not allow you open the switches without desoldering.  If you are hand wiring a keyboard, this switch opening may be good enough for you since you can unclip the switch from the plate without desoldering.</li>
+                        <li><img src="{{ static_url('images/switch_type_1.png') }}" style="float:left;"> This is the default and recommended switch cutout.  It balances features with affordability since it is less expensive to cut than any of the other openable cutouts.  This opening allows for MX switches to be opened without desoldering and is also Alps compatible.</li>
+                        <li><img src="{{ static_url('images/switch_type_2.png') }}" style="float:left;"> This is the standard H cutout which allows for MX switches to be opened.  This cutout is fine, but you will pay more to get a plate cut with this opening than the previous option.</li>
+                        <!--<li><img src="{{ static_url('images/switch_type_3.png') }}" style="float:left;"> This switch opening is not recommended.  I have added it so you have the option, but it has a couple problems.  This opening will cost about 3 times as much as the basic switch opening.  There are reports that the switches do not clip into this opening securely.  The only reason you would choose this opening is if you need to rotate a switch 90 degrees.</li>-->
+                      </ul>
+                    </div>
+                  </li>
+                  <li>
+                    <label for="stab-type" class="label"><span>Stabilizer Type</span></label>
+                    <span id="stab-type-label" class="dropdown-label">
+                      <select id="stab-type" class="dropdown" name="stab-type">
+                        <option value="0" selected>Cherry + Costar</option>
+                        <option value="1">Cherry Only</option>
+                        <option value="2">Costar Only</option>
+                      </select>
+                    </span>
+                    <span data-id="stab-type-help" class="help">&nbsp;</span>
+                    <div id="stab-type-help" class="help-dialog" title="Stabilizer Type Help">
+                      This section lets you pick which types of stabilizer cutouts you would like cut in the plate.  For the most flexibility you will probably want to pick the 'Cherry + Costar' option. However, if you know you only want to use Costar stabilizers and you want to reduce machining costs, the 'Costar Only' option is a good choice.<br />
+                      <ul>
+                        <li><b>Cherry + Costar</b> - A stabilizer cutout which supports; Cherry PCB Mount, Cherry Plate Mount and Costar stabilizers.</li>
+                        <li><b>Cherry Only</b> - A stabilizer cutout which only supports Cherry stabilizers.</li>
+                        <li><b>Costar Only</b> - A stabilizer cutout which only supports Costar stabilizers.</li>
+                      </ul>
+                    </div>
+                  </li>
+                  <li>
+                    <label for="case-type" class="label"><span>Case Type</span></label>
+                    <span id="case-type-label" class="dropdown-label">
+                      <select id="case-type" class="dropdown" name="case-type">
+                        <option value="" selected>None</option>
+                        <option value="poker">Poker - 60%</option>
+                        <option value="sandwich">Sandwich</option>
+                      </select>
+                    </span>
+                    <span data-id="case-type-help" class="help">&nbsp;</span>
+                    <div id="case-type-help" class="help-dialog" title="Case Type Help">
+                      This section lets you either select the type of case you are planning to put this plate in, or create the CAD for a case to build with the case.  Your options are limited right now to what I have implemented.  I will be adding cases as I get to them.  If you have a case you would like to see added, please PM me via 'swill' @ GH.<br />
+                      <ul>
+                        <li><b>None</b> - This option will not have any mount holes.  I don't think this would ever be used unless you are sandwiching it in a case somehow and it 'sets into' the case and is firmly fixed some other way.</li>
+                        <li><b>Poker (60%)</b> - This case option allows you to use a PCB and mount the plate in a Poker case.  This layout is based on the GH60 PCB drawings.  The holes are currently hard coded to a 5mm diameter.  The holes are designed to let the screws pass through the plate and only let the PCB hold everything to the plate.  If you are hand wiring, you need the Sandwich case.</li>
+                        <li><b>Sandwich</b> - This is a standard layered case.  The plate goes on the top and then there are essentially ring layers and then a bottom plate.  There are two types of ring layers; 'open' which has a cutout for the USB connector, and 'closed' which has no cutouts.  You can choose how many of each layer is suitable for your case.<br />
+                        This case type will actually produce the CAD files for <b>all</b> the layers of the sandwich case.  You will be able to choose how many of each layer you want cut and build the case completely from the output of this tool.</li>
+                      </ul>
+                    </div>
+                  </li>
+                  <li id="mount-holes-wrapper">
+                    <span class="label">Mount Holes</span>
+                    <input id="mount-holes-num" class="input-style placeholder small" name="mount-holes-num" placeholder="number of holes" />
+                    <input id="mount-holes-size" class="input-style placeholder small" name="mount-holes-size" placeholder="diameter (mm)" />
+                    <span data-id="mount-holes-help" class="help">&nbsp;</span>
+                    <div id="mount-holes-help" class="help-dialog" title="Mount Hole Help">
+                      This section is only relevant for the 'Sandwich' case type.  The number of holes are evenly distributed around the board with holes in each of the 4 corners.  You need to enter at least 4 holes and up to as many as you need.  Keep in mind where you plan to put the USB opening, so if you put the USB opening in the center of the keyboard, make sure you do not have a hole there.  The second field is for the diameter of the holes to be cut.  You should determine this value based on the size screws you plan to use.  Keep in mind that all measurements are in millimeters.
+                    </div>
+                    <div class="error-msg"></div>
+                  </li>
+                  <li id="width-padding-wrapper">
+                    <span class="label">Width Padding</span>
+                    <label for="width-padding-toggle">
+                    <input id="width-padding-toggle" type="checkbox" name="width-padding-toggle" checked="checked" />
+                    <span>Width Padding</span></label>
+                    <input id="width-padding" class="input-style placeholder small" name="width-padding" placeholder="per side (mm)" />
+                    <span data-id="width-padding-help" class="help">&nbsp;</span>
+                    <div id="width-padding-help" class="help-dialog" title="Width Padding Help">
+                      This value determines how much space will be added to the left and right of the plate.  The width of the plate is calculated such that the switches take up 19.05mm square.  This means that if you have this value as zero, the edge of the plate will basically be in-line with the edge of the key caps.  So the value you add here will be the amount of space that will be showing outside of the key caps.<br />
+                      <br />
+                      Keep in mind that the value you enter is added to <b>both</b> sides of the plate.  So if you enter '6', there will be 6mm added to the left and an additional 6mm added to the right.
+                    </div>
+                    <div class="error-msg"></div>
+                  </li>
+                  <li id="height-padding-wrapper">
+                    <span class="label">Height Padding</span>
+                    <label for="height-padding-toggle">
+                    <input id="height-padding-toggle" type="checkbox" name="height-padding-toggle" checked="checked" />
+                    <span>Height Padding</span></label>
+                    <input id="height-padding" class="input-style placeholder small" name="height-padding" placeholder="per side (mm)" />
+                    <span data-id="height-padding-help" class="help">&nbsp;</span>
+                    <div id="height-padding-help" class="help-dialog" title="Height Padding Help">
+                      This value determines how much space will be added to the top and bottom of the plate.  The height of the plate is calculated such that the switches take up 19.05mm square.  This means that if you have this value as zero, the edge of the plate will basically be in-line with the edge of the key caps.  So the value you add here will be the amount of space that will be showing outside of the key caps.<br />
+                      <br />
+                      Keep in mind that the value you enter is added to <b>both</b> the top and bottom of the plate.  So if you enter '6', there will be 6mm added to the top and an additional 6mm added to the bottom.
+                    </div>
+                    <div class="error-msg"></div>
+                  </li>
+                  <li>
+                    <span class="label">Plate Corners</span>
+                    <label for="fillet-toggle">
+                    <input id="fillet-toggle" type="checkbox" name="fillet-toggle" checked="checked" />
+                    <span>Plate Corners</span></label>
+                    <input id="fillet" class="input-style placeholder small" name="fillet" placeholder="radius (mm)" />
+                    <span data-id="fillet-help" class="help">&nbsp;</span>
+                    <div id="fillet-help" class="help-dialog" title="Plate Corner Help">
+                      This field allows you to add rounded corners to your plate/case.  The value you specify in this field is the radius in millimeters of each corner of the plate/case.  
+                    </div>
+                    <div class="error-msg"></div>
+                  </li>
+                  <li>
+                    <span class="label">Plate Thickness</span>
+                    <label for="thickness-toggle">
+                    <input id="thickness-toggle" type="checkbox" name="thickness-toggle" checked="checked" />
+                    <span>Plate Thickness</span></label>
+                    <input id="thickness" class="input-style placeholder small" name="thickness" placeholder="default: 1.5 (mm)" />
+                    <span data-id="thickness-help" class="help">&nbsp;</span>
+                    <div id="thickness-help" class="help-dialog" title="Plate Thickness Help">
+                      This field allows you to change the thickness of the plate you would like drawn.  The default of 1.5 (mm) will be used unless you specify a different value.
+                    </div>
+                    <div class="error-msg"></div>
+                  </li>
+                  <li>
+                    <span class="label">Kerf</span>
+                    <label for="kerf-toggle">
+                    <input id="kerf-toggle" type="checkbox" name="kerf-toggle" checked="checked" />
+                    <span>Kerf</span></label>
+                    <input id="kerf" class="input-style placeholder small" name="kerf" placeholder="default: 0.0 (mm)" />
+                    <span data-id="kerf-help" class="help">&nbsp;</span>
+                    <div id="kerf-help" class="help-dialog" title="Kerf Help">
+                      This field allows you to adjust the kerf that you expect when the plate is being cut.  Keep in mind that the different processes will have different values for kerf, so check with the manufacturer.  Also, keep in mind that the type of material and its thickness plays a role in the width of the kerf.  
+                    </div>
+                    <div class="error-msg"></div>
+                  </li>
+                  <li>
+                    <span class="label">Export SVG</span>
+                    <label for="svg-toggle">
+                    <input id="svg-toggle" type="checkbox" name="svg-toggle" checked="checked" />
+                    <span>Export SVG</span></label>
+                    <span data-id="svg-help" class="help">&nbsp;</span>
+                    <div id="svg-help" class="help-dialog" title="Export SVG Help">
+                      The SVG export takes a really long time.  If you are using a complicated switch cutout or you have a large plate, the SVG export will take a very long time.  I am disabling it by default because most people mainly care about the DXF export format (which is one of the default exports).  If you want an SVG export, just turn on this toggle.
+                    </div>
+                    <div class="error-msg"></div>
+                  </li>
+                </ul>
+              </div>
+              <div class="button-wrapper">
+                <input id="submit-button" class="button-style" type="submit" value="Draw My CAD!!!" />
+              </div>
+            </form>
+          </div>
+
+          <h3>View and download the CAD</h3>
+          <div id="plate-draw-section" class="section full-width"></div>
+        </div>
+
+        <div class="shoutouts ui-state-highlight ui-corner-all">
+          I want to give a big shout-out to <a href="https://www.bigbluesaw.com/" target="_blank">Big Blue Saw</a>.&nbsp;&nbsp;They have adapted their <a href="https://www.bigbluesaw.com/faqs/parts/how-does-waterjet-cutting-work.html" target="_blank">waterjet cutting</a> service to best fit our needs.
+        </div> 
+      </div>
+    </div>
+  </body>
+</html>
