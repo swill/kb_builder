@@ -460,31 +460,32 @@ def export(p, result, label, data_hash, config, log):
     Part.show(p.val().wrapped)
     doc = FreeCAD.ActiveDocument
     # export the drawing into different formats
+    pwd_len = len(config['app']['pwd']) # the absolute part of the working directory (aka - outside the web space)
     result['exports'][label] = []
     if 'js' in result['formats']:
         with open("%s/%s_%s.js" % (config['app']['export'], label, data_hash), "w") as f:
             cadquery.exporters.exportShape(p, 'TJS', f)
-            result['exports'][label].append({'name':'js', 'url':'%s/%s_%s.js' % (config['app']['export'], label, data_hash)})
+            result['exports'][label].append({'name':'js', 'url':'%s/%s_%s.js' % (config['app']['export'][pwd_len:], label, data_hash)})
             log.info("Exported 'JS'")
     if 'brp' in result['formats']:
         Part.export(doc.Objects, "%s/%s_%s.brp" % (config['app']['export'], label, data_hash))
-        result['exports'][label].append({'name':'brp', 'url':'%s/%s_%s.brp' % (config['app']['export'], label, data_hash)})
+        result['exports'][label].append({'name':'brp', 'url':'%s/%s_%s.brp' % (config['app']['export'][pwd_len:], label, data_hash)})
         log.info("Exported 'BRP'")
     if 'stp' in result['formats']:
         Part.export(doc.Objects, "%s/%s_%s.stp" % (config['app']['export'], label, data_hash))
-        result['exports'][label].append({'name':'stp', 'url':'%s/%s_%s.stp' % (config['app']['export'], label, data_hash)})
+        result['exports'][label].append({'name':'stp', 'url':'%s/%s_%s.stp' % (config['app']['export'][pwd_len:], label, data_hash)})
         log.info("Exported 'STP'")
     if 'stl' in result['formats']:
         Mesh.export(doc.Objects, "%s/%s_%s.stl" % (config['app']['export'], label, data_hash))
-        result['exports'][label].append({'name':'stl', 'url':'%s/%s_%s.stl' % (config['app']['export'], label, data_hash)})
+        result['exports'][label].append({'name':'stl', 'url':'%s/%s_%s.stl' % (config['app']['export'][pwd_len:], label, data_hash)})
         log.info("Exported 'STL'")
     if 'dxf' in result['formats']:
         importDXF.export(doc.Objects, "%s/%s_%s.dxf" % (config['app']['export'], label, data_hash))
-        result['exports'][label].append({'name':'dxf', 'url':'%s/%s_%s.dxf' % (config['app']['export'], label, data_hash)})
+        result['exports'][label].append({'name':'dxf', 'url':'%s/%s_%s.dxf' % (config['app']['export'][pwd_len:], label, data_hash)})
         log.info("Exported 'DXF'")
     if 'svg' in result['formats']:
         importSVG.export(doc.Objects, "%s/%s_%s.svg" % (config['app']['export'], label, data_hash))
-        result['exports'][label].append({'name':'svg', 'url':'%s/%s_%s.svg' % (config['app']['export'], label, data_hash)})
+        result['exports'][label].append({'name':'svg', 'url':'%s/%s_%s.svg' % (config['app']['export'][pwd_len:], label, data_hash)})
         log.info("Exported 'SVG'")
     # remove all the documents from the view before we move on
     for obj in doc.Objects:
