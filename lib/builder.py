@@ -464,7 +464,7 @@ def export(p, result, label, data_hash, config, log):
     if 'js' in result['formats']:
         with open("%s/%s_%s.js" % (config['app']['export'], label, data_hash), "w") as f:
             cadquery.exporters.exportShape(p, 'TJS', f)
-            result['exports']['js'].append({'name':'js', 'url':'%s/%s_%s.js' % (config['app']['export'], label, data_hash)})
+            result['exports'][label].append({'name':'js', 'url':'%s/%s_%s.js' % (config['app']['export'], label, data_hash)})
             log.info("Exported 'JS'")
     if 'brp' in result['formats']:
         Part.export(doc.Objects, "%s/%s_%s.brp" % (config['app']['export'], label, data_hash))
