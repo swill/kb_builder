@@ -10,28 +10,44 @@ This tool is implemented as a webserver and exposes a UI to be consumed in the b
 
 ## Installation and Configuration
 
-Install this one a Ubuntu VM on your laptop with either VirtualBox or VMware Fusion.  
-
+Install this one a Ubuntu VM on your laptop with either VirtualBox or VMware Fusion.  I have had trouble getting the FreeCAD lib to work correctly on Mac OSX, so if you get it working, please contribute some documentation.  For now I only describe Ubuntu install instructions.
 
 ### Install the dependencies
 ```
-$ apt-get install software-properties-common
-$ add-apt-repository ppa:freecad-maintainers/freecad-daily
-$ apt-get update
-$ apt-get upgrade
-$ apt-get -y install freecad
-$ apt-get -y install git
-$ apt-get -y install python-pip
-$ pip install tornado
-$ pip install cadquery
+$ sudo apt-get install software-properties-common
+$ sudo add-apt-repository ppa:freecad-maintainers/freecad-daily
+$ sudo apt-get update
+$ sudo apt-get upgrade
+$ sudo apt-get -y install unzip
+$ sudo apt-get -y install build-essential
+$ sudo apt-get -y install freecad
+$ sudo apt-get -y install git
+$ sudo apt-get -y install python-pip
+$ sudo apt-get -y install python-dev
+$ sudo pip install tornado
+$ sudo pip install cadquery
+```
+
+### Install the Draft-dxf-importer
+This is a quick start guide.  Review the [full docs here](https://github.com/yorikvanhavre/Draft-dxf-importer)
+
+```
+$ cd ~/
+$ freecad
+	# note the version number
+	# download the appropriate version from here: https://github.com/yorikvanhavre/Draft-dxf-importer
+	# i will assume freecad version v16 and the latest importer (v15)
+$ wget https://github.com/yorikvanhavre/Draft-dxf-importer/archive/1.38.zip
+$ unzip 1.38.zip
+	# this will create the 'Draft-dxf-importer-1.38/' directory
+$ cp Draft-dxf-importer-1.38/* /root/.FreeCAD/
 ```
 
 ### Get the source and run
 ```
-$ cd ~/
 $ git clone https://github.com/swill/kb_builder.git
 $ cd kb_builder
-$ ./kb_builder.py
+$ sudo ./kb_builder.py
 ```
 
 
