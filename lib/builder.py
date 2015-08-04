@@ -43,7 +43,6 @@ SWITCH_LAYER = 'switch'
 BOTTOM_LAYER = 'bottom'
 CLOSED_LAYER = 'closed'
 OPEN_LAYER = 'open'
-export_formats = ['js', 'dxf', 'svg', 'brp', 'stp', 'stl']
 
 class Plate(object):
     def __init__(self):
@@ -498,7 +497,7 @@ def build(data_hash, data, config, log):
     result = {}
     result['has_layers'] = False
     result['plates'] = [SWITCH_LAYER]
-    result['formats'] = export_formats
+    result['formats'] = cfg['app']['formats']
     result['exports'] = {}
     p = Plate()
     if 'case-type' in data:
