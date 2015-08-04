@@ -39,7 +39,9 @@ class IndexHandler(tornado.web.RequestHandler):
 
     @tornado.gen.coroutine
     def post(self):
+        pprint.pprint(self.request.body)
         data = json.loads(self.request.body)
+        pprint.pprint(data)
         data_hash = hashlib.sha1(json.dumps(data, sort_keys=True)).hexdigest()
         cad = {}
         build_start = time.time()
