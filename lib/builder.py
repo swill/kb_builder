@@ -451,6 +451,25 @@ class Plate(object):
         return p.center(x, y)
 
 
+    def __repr__(self):
+        '''Print out all Plate object configuration settings.'''
+
+        settings = {}
+
+        settings['plate_layout'] = self.layout
+        settings['switch_type'] = self.switch_type
+        settings['stabilizer_type'] = self.stab_type
+        settings['case_type_and_holes'] = self.case
+        settings['width_padding'] = self.x_pad
+        settings['height_padding'] = self.y_pad
+        settings['plate_corners'] = self.fillet
+        settings['kerf'] = self.kerf
+        # XXX line colour?
+
+        return json.dumps(settings, sort_keys=True, indent=4,
+            separators=(',', ': '))
+
+
 
 # export the plate to different file formats
 def export(p, result, label, data_hash, config, log):
