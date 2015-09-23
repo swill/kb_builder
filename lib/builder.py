@@ -505,7 +505,7 @@ def export(obj, p, result, label, data_hash, config, log):
         importSVG.export(doc.Objects, "%s/%s_%s.svg" % (config['app']['export'], label, data_hash))
         result['exports'][label].append({'name':'svg', 'url':'%s/%s_%s.svg' % (config['app']['export'][pwd_len:], label, data_hash)})
         log.info("Exported 'SVG'")
-    if 'json' in result['formats']:
+    if 'json' in result['formats'] and label == SWITCH_LAYER:
         with open("%s/%s_%s.json" % (config['app']['export'], label, data_hash), 'w') as json_file:
             json_file.write(repr(obj))
         result['exports'][label].append({'name':'json', 'url':'%s/%s_%s.json' % (config['app']['export'][pwd_len:], label, data_hash)})
