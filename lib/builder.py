@@ -144,7 +144,7 @@ class Plate(object):
                 for i in range(self.case['y_holes'] + 1):
                     p = p.center(0,-y_gap).circle(radius).cutThruAll()
                 if result['has_layers']:
-                    export(p, result, BOTTOM_LAYER, data_hash, config, log)
+                    export(self, p, result, BOTTOM_LAYER, data_hash, config, log)
                 p = p.center(-self.x_pad/2, -self.y_pad/2)
 
         # cut all the switch and stabilizer openings...
@@ -178,7 +178,7 @@ class Plate(object):
                     y += prev_y_off
                 p = self.cut_switch(p, (x, y), key)
                 prev_width = key['w']
-        export(p, result, SWITCH_LAYER, data_hash, config, log)
+        export(self, p, result, SWITCH_LAYER, data_hash, config, log)
 
         # cut layers
         if result['has_layers']:
@@ -190,7 +190,7 @@ class Plate(object):
                 (-self.width/2+self.x_pad+self.kerf*2,-self.height/2+self.y_pad+self.kerf*2)
             ]
             p = p.polyline(points).cutThruAll()
-            export(p, result, CLOSED_LAYER, data_hash, config, log)
+            export(self, p, result, CLOSED_LAYER, data_hash, config, log)
 
             # open layer
             p = p.center(0, -self.height/2+self.y_pad/2+self.kerf)
@@ -200,7 +200,7 @@ class Plate(object):
                 (-self.usb_width/2+self.kerf,-self.y_pad/2-self.kerf)
             ]
             p = p.polyline(points).cutThruAll()
-            export(p, result, OPEN_LAYER, data_hash, config, log)
+            export(self, p, result, OPEN_LAYER, data_hash, config, log)
         return result
 
 
@@ -472,7 +472,7 @@ class Plate(object):
 
 
 # export the plate to different file formats
-def export(p, result, label, data_hash, config, log):
+def export(obj, p, result, label, data_hash, config, log):
     log.info("Exporting %s layer for %s" % (label, data_hash))
     # draw the part so we can export it
     Part.show(p.val().wrapped)
@@ -505,9 +505,14 @@ def export(p, result, label, data_hash, config, log):
         importSVG.export(doc.Objects, "%s/%s_%s.svg" % (config['app']['export'], label, data_hash))
         result['exports'][label].append({'name':'svg', 'url':'%s/%s_%s.svg' % (config['app']['export'][pwd_len:], label, data_hash)})
         log.info("Exported 'SVG'")
+    if 'json' in result['formats']:
+        with open("%s/%s_%s.json" % (config['app']['export'], label, data_hash), 'w') as json_file:
+            json_file.write(repr(obj))
+        result['exports'][label].append({'name':'json', 'url':'%s/%s_%s.json' % (config['app']['export'][pwd_len:], label, data_hash)})
+        log.info("Exported 'JSON'")
     # remove all the documents from the view before we move on
-    for obj in doc.Objects:
-        doc.removeObject(obj.Label)
+    for o in doc.Objects:
+        doc.removeObject(o.Label)
 
 
 # take the input from the webserver and instantiate and draw the plate

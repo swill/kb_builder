@@ -24,7 +24,7 @@ config['app']['port'] = 80
 config['app']['pwd'] = os.path.dirname(__file__)
 config['app']['static'] = os.path.join(config['app']['pwd'], 'static')
 config['app']['export'] = os.path.join(config['app']['static'], 'exports')
-config['app']['formats'] = ['js', 'dxf', 'svg', 'brp', 'stp', 'stl'] # remove formats to speed up build time
+config['app']['formats'] = ['js', 'dxf', 'svg', 'brp', 'stp', 'stl', 'json'] # remove formats to speed up build time
 config['app']['debug'] = False
 config['app']['log'] = './kb_builder.log'
 
