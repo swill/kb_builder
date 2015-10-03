@@ -15,7 +15,7 @@
     <script type="text/javascript" src="{{ static_url('plugins/jquery-ui-1.11.2.custom/external/jquery/jquery.js') }}"></script>
     <script type="text/javascript" src="{{ static_url('plugins/jquery-ui-1.11.2.custom/jquery-ui.min.js') }}"></script>
     <script type="text/javascript">
-      var cad = {}; 
+      var cad = {};
 
       $(function() {
         $('#accordion').accordion({
@@ -339,8 +339,8 @@
             _cad.mesh.position.y = 0;
             _cad.mesh.position.x = 0;
           });
-          _cad.loader.onLoadComplete = function() { 
-            _cad.scene.add(_cad.mesh); 
+          _cad.loader.onLoadComplete = function() {
+            _cad.scene.add(_cad.mesh);
             _cad.render(); // initial render because the objects arrive on the scene late
           };
 
@@ -402,7 +402,7 @@
         </div>
         Generate the CAD files required to build a keyboard with any layout you specify...
         <div class="disclaimer ui-state-highlight ui-corner-all">
-          <span class="ui-icon ui-icon-inline ui-icon-alert"></span><b>Disclaimer:</b> I have not had a chance to test these cutouts yet, so use at your own risk until I remove this disclaimer. 
+          <span class="ui-icon ui-icon-inline ui-icon-alert"></span><b>Disclaimer:</b> I have not had a chance to test these cutouts yet, so use at your own risk until I remove this disclaimer.
         </div>
         <div id="accordion">
           <h3>Configure the CAD to draw</h3>
@@ -448,6 +448,9 @@
                     <!--<label class="radio-label">
                       <input type="radio" name="switch-type" value="3" /><img src="{{ static_url('images/switch_type_3.png') }}">
                     </label>-->
+                    <label class="radio-label">
+                      <input type="radio" name="switch-type" value="4" /><img src="{{ static_url('images/switch_type_0.png') }}">
+                    </label>
                     <span data-id="switch-type-help" class="help">&nbsp;</span>
                     <div id="switch-type-help" class="help-dialog" title="Switch Type Help">
                       You have 3 different switch cutouts which you can choose from.  Keep in mind that the more complex the cutout, the more expensive the plate will be to cut.  I would strongly recommend the second option unless you have a reason not to choose it because it is affordable and both Cherry MX and Alps compatible and the MX switches can be opened.<br />
@@ -544,7 +547,7 @@
                     <input id="fillet" class="input-style placeholder small" name="fillet" placeholder="radius (mm)" />
                     <span data-id="fillet-help" class="help">&nbsp;</span>
                     <div id="fillet-help" class="help-dialog" title="Plate Corner Help">
-                      This field allows you to add rounded corners to your plate/case.  The value you specify in this field is the radius in millimeters of each corner of the plate/case.  
+                      This field allows you to add rounded corners to your plate/case.  The value you specify in this field is the radius in millimeters of each corner of the plate/case.
                     </div>
                     <div class="error-msg"></div>
                   </li>
@@ -568,7 +571,7 @@
                     <input id="kerf" class="input-style placeholder small" name="kerf" placeholder="default: 0.0 (mm)" />
                     <span data-id="kerf-help" class="help">&nbsp;</span>
                     <div id="kerf-help" class="help-dialog" title="Kerf Help">
-                      This field allows you to adjust the kerf that you expect when the plate is being cut.  Keep in mind that the different processes will have different values for kerf, so check with the manufacturer.  Also, keep in mind that the type of material and its thickness plays a role in the width of the kerf.  
+                      This field allows you to adjust the kerf that you expect when the plate is being cut.  Keep in mind that the different processes will have different values for kerf, so check with the manufacturer.  Also, keep in mind that the type of material and its thickness plays a role in the width of the kerf.
                     </div>
                     <div class="error-msg"></div>
                   </li>
@@ -597,7 +600,7 @@
 
         <div class="shoutouts ui-state-highlight ui-corner-all">
           I want to give a big shout-out to <a href="https://www.bigbluesaw.com/" target="_blank">Big Blue Saw</a>.&nbsp;&nbsp;They have adapted their <a href="https://www.bigbluesaw.com/faqs/parts/how-does-waterjet-cutting-work.html" target="_blank">waterjet cutting</a> service to best fit our needs.
-        </div> 
+        </div>
       </div>
     </div>
   </body>
