@@ -1,0 +1,148 @@
+#!/usr/bin/env python
+"""Script to generate keyboard plates and cases from KLE data.
+
+By default this reads the data on stdin. You can also use --file to pass data
+in through a file.
+"""
+import argparse
+import hashlib
+import hjson
+import logging
+import sys
+from time import time
+from config import config
+from lib import builder
+
+
+logging.basicConfig()
+
+# Parse our command line args
+parser = argparse.ArgumentParser()
+
+parser.add_argument('-f', '--file', help='File containing the KLE data.')
+parser.add_argument('-n', '--name', help='Output file basename (Default: generate a hash or use -f)')
+parser.add_argument('--switch', help='Switch type: mx, (*)alpsmx, mx-open, alps')
+parser.add_argument('--stab', help='Stabilizer type: cherry, costar, (*)cherry-costar, alps')
+parser.add_argument('--case', help='Case type: (*)none, poker, sandwich')
+parser.add_argument('--holes', default=6, type=int, help='Number of holes in the case (Default: 6)')
+parser.add_argument('--hole-diameter', default=3, type=int, help='Case hole size in mm (Default: 3)')
+parser.add_argument('--height', default=4, type=int, help='Amount to pad the height (Default: 4)')
+parser.add_argument('--width', default=4, type=int, help='Amount to pad the width (Default: 4)')
+parser.add_argument('--corners', default=0, type=int, help='Radius for rounded corners, 0 to disable (Default: 0)')
+parser.add_argument('--thickness', default=0, type=int, help='Plate thickness, 0 to disable (Default: 0)')
+parser.add_argument('--kerf', default=0, type=int, help='Kerf, 0 to disable (Default: 0)')
+parser.add_argument('--svg', action='store_true', help='Generate an SVG file too.')
+args = parser.parse_args()
+
+# Figure out what kind of switch it is
+if args.switch:
+    if args.switch == 'mx':
+        args.switch = 1
+    if args.switch == 'alpsmx':
+        args.switch = 2
+    if args.switch == 'mx-open':
+        args.switch = 3
+    if args.switch == 'alps':
+        args.switch = 4
+    if args.switch in '1234':
+        args.switch = int(args.switch)
+    else:
+        logging.error('Unknown switch type: %s', args.switch)
+        exit(1)
+else:
+    args.switch = 1
+
+# Figure out what kind of stab it is
+if args.stab:
+    if args.stab == 'cherry':
+        args.stab = 1
+    if args.stab == 'costar':
+        args.stab = 2
+    if args.stab == 'cherry-costar':
+        args.stab = 3
+    if args.stab == 'alps':
+        args.stab = 4
+    if args.stab in '1234':
+        args.stab = int(args.stab)
+    else:
+        logging.error('Unknown stab type: %s', args.stab)
+        exit(1)
+else:
+    args.stab = 3
+
+# Figure out what kind of case it is
+if args.case:
+    if args.case == 'none':
+        args.case = ''
+    elif args.case not in ('none', 'poker', 'sandwich'):
+        logging.error('Unknown case type: %s', args.case)
+        exit(1)
+else:
+    args.case = ''
+
+# MAIN
+if __name__ == '__main__':
+    if args.file:
+        layout = open(args.file).read()
+    else:
+        if sys.stdin.isatty():
+            print '*** Paste the KLE data here and press Ctrl-D to process it:'
+        layout = sys.stdin.read()
+
+    layout = '{"layout": [' + layout + ']}'
+    layout = hjson.loads(layout)['layout']
+    data = {
+        'switch-type': args.switch,
+        'stab-type': args.stab,
+        'case-type': args.case,
+        'mount-holes-num': args.holes,
+        'mount-holes-size': args.hole_diameter,
+        'width-padding': args.width,
+        'height-padding': args.height,
+        'fillet': args.corners,
+        'thickness': args.thickness,
+        'kerf': args.kerf,
+        'export_svg': args.svg,
+        'layout': layout,
+    }
+
+    # Remove default options
+    if args.case == '':
+        del(data['mount-holes-size'])
+        del(data['mount-holes-num'])
+
+    if args.height == 0:
+        del(data['height-padding'])
+
+    if args.width == 0:
+        del(data['width-padding'])
+
+    if args.thickness == 0:
+        del(data['thickness'])
+
+    if args.corners == 0:
+        del(data['fillet'])
+
+    if args.kerf == 0:
+        del(data['kerf'])
+
+    # Figure out the file name
+    if args.file:
+        data_hash = args.file
+    else:
+        data_hash = hjson.dumps(data, sort_keys=True)
+        data_hash = hashlib.sha1(data_hash).hexdigest()
+
+    build_start = time()
+    logging.info("Processing %s", (data_hash))
+    cad = builder.build(data_hash, data, config)
+    logging.info("Finished %s", (data_hash))
+    logging.info("Processing took {0:.2f} seconds".format(time()-build_start))
+
+    # Display info about the plates
+    print '**** Overall plate size: %s x %s mm' % (cad['width'], cad['height'])
+
+    for plate in cad['plates']:
+        print '*** Files exported for plate', plate
+        for file in cad['exports'][plate]:
+            print '*', file['url'][1:]

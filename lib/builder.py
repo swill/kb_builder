@@ -2,28 +2,31 @@
 # -*- coding: utf-8 -*-
 
 # kb_builder builts keyboard plate and case CAD files using JSON input.
-# 
+#
 # Copyright (C) 2015  Will Stevens (swill)
-# 
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
 # published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 import json
+import logging
+
 import math
 import os
 import sys
 
 from config import config as cfg
+
+log = logging.getLogger()
 
 if 'lib' in cfg and 'freecad_lib_dir' in cfg['lib'] and cfg['lib']['freecad_lib_dir'] != "":
     sys.path.append(cfg['lib']['freecad_lib_dir'])
@@ -94,11 +97,13 @@ class Plate(object):
         self.kerf = k/2
 
     def set_switch_type(self, t):
-        if t in range(4):
+        if t in range(5):
+            log.info('Setting switch-type to %s', t)
             self.switch_type = t
 
     def set_stab_type(self, s):
         if s in range(3):
+            log.info('Setting stab-type to %s', s)
             self.stab_type = s
 
     def set_poker_holes(self, d):
@@ -109,7 +114,7 @@ class Plate(object):
 
 
     # this is the main draw function for the class and handles the logical flow and orchestration
-    def draw(self, result, layout, data_hash, config, log):
+    def draw(self, result, layout, data_hash, config):
         self.parse_layout(layout)
         p = self.init_plate()
         result['width'] = self.width
@@ -144,7 +149,7 @@ class Plate(object):
                 for i in range(self.case['y_holes'] + 1):
                     p = p.center(0,-y_gap).circle(radius).cutThruAll()
                 if result['has_layers']:
-                    export(self, p, result, BOTTOM_LAYER, data_hash, config, log)
+                    self.export(p, result, BOTTOM_LAYER, data_hash, config)
                 p = p.center(-self.x_pad/2, -self.y_pad/2)
 
         # cut all the switch and stabilizer openings...
@@ -163,7 +168,7 @@ class Plate(object):
                     x += self.x_pad
                     y += self.y_pad
                     # set x_off negative since the 'cut_switch' will append 'x' and we need to account inital spacing
-                    self.x_off = -(x - (self.u1/2 + key['w']*self.u1/2) - kx) 
+                    self.x_off = -(x - (self.u1/2 + key['w']*self.u1/2) - kx)
                 elif k == 0: # handle changing rows
                     p = self.center(p, -self.x_off, self.u1) # move to the next row
                     self.x_off = 0 # reset back to the left side of the plate
@@ -178,7 +183,7 @@ class Plate(object):
                     y += prev_y_off
                 p = self.cut_switch(p, (x, y), key)
                 prev_width = key['w']
-        export(self, p, result, SWITCH_LAYER, data_hash, config, log)
+        self.export(p, result, SWITCH_LAYER, data_hash, config)
 
         # cut layers
         if result['has_layers']:
@@ -190,7 +195,7 @@ class Plate(object):
                 (-self.width/2+self.x_pad+self.kerf*2,-self.height/2+self.y_pad+self.kerf*2)
             ]
             p = p.polyline(points).cutThruAll()
-            export(self, p, result, CLOSED_LAYER, data_hash, config, log)
+            self.export(p, result, CLOSED_LAYER, data_hash, config)
 
             # open layer
             p = p.center(0, -self.height/2+self.y_pad/2+self.kerf)
@@ -200,7 +205,7 @@ class Plate(object):
                 (-self.usb_width/2+self.kerf,-self.y_pad/2-self.kerf)
             ]
             p = p.polyline(points).cutThruAll()
-            export(self, p, result, OPEN_LAYER, data_hash, config, log)
+            self.export(p, result, OPEN_LAYER, data_hash, config)
         return result
 
 
@@ -242,9 +247,9 @@ class Plate(object):
                 layout_height += self.u1 + row_height*self.u1;
             # hidden global features
             if isinstance(row, dict):
-                if 'grow_y' in row and (type(row['grow_y']) == int or type(row['grow_y']) == float): 
+                if 'grow_y' in row and (type(row['grow_y']) == int or type(row['grow_y']) == float):
                     self.grow_y = row['grow_y']/2
-                if 'grow_x' in row and (type(row['grow_x']) == int or type(row['grow_x']) == float): 
+                if 'grow_x' in row and (type(row['grow_x']) == int or type(row['grow_x']) == float):
                     self.grow_x = row['grow_x']/2
         self.width = layout_width*self.u1 + 2*self.x_pad + 2*self.kerf
         self.height = layout_height + 2*self.y_pad + 2*self.kerf
@@ -305,7 +310,10 @@ class Plate(object):
 
 
     # cut a switch opening with center 'c' defined by the 'key'
-    def cut_switch(self, p, c, key={}):
+    def cut_switch(self, p, c, key=None):
+        if not key:
+            key = {}
+
         w = key['w'] if 'w' in key else 1
         h = key['h'] if 'h' in key else 1
         t = key['_t'] if '_t' in key and key['_t'] in range(4) else self.switch_type
@@ -321,28 +329,34 @@ class Plate(object):
         points = []
         if t == 0: # standard square switch
             points = [
-                (7-k+self.grow_x,-7+k-self.grow_y), (7-k+self.grow_x,7-k+self.grow_y), 
-                (-7+k-self.grow_x,7-k+self.grow_y), (-7+k-self.grow_x,-7+k-self.grow_y), 
+                (7-k+self.grow_x,-7+k-self.grow_y), (7-k+self.grow_x,7-k+self.grow_y),
+                (-7+k-self.grow_x,7-k+self.grow_y), (-7+k-self.grow_x,-7+k-self.grow_y),
                 (7-k+self.grow_x,-7+k-self.grow_y)
             ]
-        if t == 1: # mx and alps compatible switch, mx can open
+        elif t == 1: # mx and alps compatible switch, mx can open
             points = [
                 (7-k,-7+k), (7-k,-6.4+k), (7.8-k,-6.4+k), (7.8-k,6.4-k), (7-k,6.4-k), (7-k,7-k),
                 (-7+k,7-k), (-7+k,6.4-k), (-7.8+k,6.4-k), (-7.8+k,-6.4+k), (-7+k,-6.4+k), (-7+k,-7+k), (7-k,-7+k)
             ]
-        if t == 2: # mx switch can open (side wings)
+        elif t == 2: # mx switch can open (side wings)
             points = [
-                (7-k,-7+k), (7-k,-6+k), (7.8-k,-6+k), (7.8-k,-2.9-k), (7-k,-2.9-k), 
-                (7-k,2.9+k), (7.8-k,2.9+k), (7.8-k,6-k), (7-k,6-k), (7-k,7-k), (-7+k,7-k), 
-                (-7+k,6-k), (-7.8+k,6-k), (-7.8+k,2.9+k), (-7+k,2.9+k), 
+                (7-k,-7+k), (7-k,-6+k), (7.8-k,-6+k), (7.8-k,-2.9-k), (7-k,-2.9-k),
+                (7-k,2.9+k), (7.8-k,2.9+k), (7.8-k,6-k), (7-k,6-k), (7-k,7-k), (-7+k,7-k),
+                (-7+k,6-k), (-7.8+k,6-k), (-7.8+k,2.9+k), (-7+k,2.9+k),
                 (-7+k,-2.9-k), (-7.8+k,-2.9-k), (-7.8+k,-6+k), (-7+k,-6+k), (-7+k,-7+k), (7-k,-7+k)
             ]
-        if t == 3: # rotatable mx switch can open both ways (side and top/bottom wings)
+        elif t == 3: # rotatable mx switch can open both ways (side and top/bottom wings)
             points = [
                 (7-k,-7+k), (7-k,-6+k), (7.8-k,-6+k), (7.8-k,-2.9-k), (7-k,-2.9-k), (7-k,2.9+k), (7.8-k,2.9+k), (7.8-k,6-k), (7-k,6-k),
                 (7-k,7-k), (6-k,7-k), (6-k,7.8-k), (2.9+k,7.8-k), (2.9+k,7-k), (-2.9-k,7-k), (-2.9-k,7.8-k), (-6+k,7.8-k), (-6+k,7-k),
                 (-7+k,7-k), (-7+k,6-k), (-7.8+k,6-k), (-7.8+k,2.9+k), (-7+k,2.9+k), (-7+k,-2.9-k), (-7.8+k,-2.9-k), (-7.8+k,-6+k), (-7+k,-6+k),
                 (-7+k,-7+k), (-6+k,-7+k), (-6+k,-7.8+k), (-2.9-k,-7.8+k), (-2.9-k,-7+k), (2.9+k,-7+k), (2.9+k,-7.8+k), (6-k,-7.8+k), (6-k,-7+k), (7-k,-7+k)
+            ]
+        elif t == 4: # alps compatible switch, not MX compatible
+            points = [
+                (7.75-k,-6.4+k), (7.75-k,6.4-k),
+                (-7.75+k,6.4-k), (-7.75+k,-6.4+k),
+                (7.75-k,-6.4+k),
             ]
         if rotate:
             points = self.rotate_points(points, 90, (0,0))
@@ -398,7 +412,7 @@ class Plate(object):
                 l = h
             x = 11.95 # default to a 2unit stabilizer if not found...
             # use the length of the key to determine if we have a known stabilizer config for that key
-            stab_size = '%s' % (str(l).replace('.', '').ljust(3, '0') if l < 10 else str(l).replace('.', '').ljust(4, '0')) 
+            stab_size = '%s' % (str(l).replace('.', '').ljust(3, '0') if l < 10 else str(l).replace('.', '').ljust(4, '0'))
             if stab_size in self.stabs:
                 x = self.stabs[stab_size]
             if s == 0:
@@ -466,62 +480,61 @@ class Plate(object):
         settings['kerf'] = self.kerf
         # XXX line colour?
 
-        return json.dumps(settings, sort_keys=True, indent=4,
-            separators=(',', ': '))
+        return json.dumps(settings, sort_keys=True, indent=4, separators=(',', ': '))
 
 
 
-# export the plate to different file formats
-def export(obj, p, result, label, data_hash, config, log):
-    log.info("Exporting %s layer for %s" % (label, data_hash))
-    # draw the part so we can export it
-    Part.show(p.val().wrapped)
-    doc = FreeCAD.ActiveDocument
-    # export the drawing into different formats
-    pwd_len = len(config['app']['pwd']) # the absolute part of the working directory (aka - outside the web space)
-    result['exports'][label] = []
-    if 'js' in result['formats']:
-        with open("%s/%s_%s.js" % (config['app']['export'], label, data_hash), "w") as f:
-            cadquery.exporters.exportShape(p, 'TJS', f)
-            result['exports'][label].append({'name':'js', 'url':'%s/%s_%s.js' % (config['app']['export'][pwd_len:], label, data_hash)})
-            log.info("Exported 'JS'")
-    if 'brp' in result['formats']:
-        Part.export(doc.Objects, "%s/%s_%s.brp" % (config['app']['export'], label, data_hash))
-        result['exports'][label].append({'name':'brp', 'url':'%s/%s_%s.brp' % (config['app']['export'][pwd_len:], label, data_hash)})
-        log.info("Exported 'BRP'")
-    if 'stp' in result['formats']:
-        Part.export(doc.Objects, "%s/%s_%s.stp" % (config['app']['export'], label, data_hash))
-        result['exports'][label].append({'name':'stp', 'url':'%s/%s_%s.stp' % (config['app']['export'][pwd_len:], label, data_hash)})
-        log.info("Exported 'STP'")
-    if 'stl' in result['formats']:
-        Mesh.export(doc.Objects, "%s/%s_%s.stl" % (config['app']['export'], label, data_hash))
-        result['exports'][label].append({'name':'stl', 'url':'%s/%s_%s.stl' % (config['app']['export'][pwd_len:], label, data_hash)})
-        log.info("Exported 'STL'")
-    if 'dxf' in result['formats']:
-        importDXF.export(doc.Objects, "%s/%s_%s.dxf" % (config['app']['export'], label, data_hash))
-        result['exports'][label].append({'name':'dxf', 'url':'%s/%s_%s.dxf' % (config['app']['export'][pwd_len:], label, data_hash)})
-        log.info("Exported 'DXF'")
-    if 'svg' in result['formats']:
-        importSVG.export(doc.Objects, "%s/%s_%s.svg" % (config['app']['export'], label, data_hash))
-        result['exports'][label].append({'name':'svg', 'url':'%s/%s_%s.svg' % (config['app']['export'][pwd_len:], label, data_hash)})
-        log.info("Exported 'SVG'")
-    if 'json' in result['formats'] and label == SWITCH_LAYER:
-        with open("%s/%s_%s.json" % (config['app']['export'], label, data_hash), 'w') as json_file:
-            json_file.write(repr(obj))
-        result['exports'][label].append({'name':'json', 'url':'%s/%s_%s.json' % (config['app']['export'][pwd_len:], label, data_hash)})
-        log.info("Exported 'JSON'")
-    # remove all the documents from the view before we move on
-    for o in doc.Objects:
-        doc.removeObject(o.Label)
+    def export(self, p, result, label, data_hash, config):
+        # export the plate to different file formats
+        log.info("Exporting %s layer for %s" % (label, data_hash))
+        # draw the part so we can export it
+        Part.show(p.val().wrapped)
+        doc = FreeCAD.ActiveDocument
+        # export the drawing into different formats
+        pwd_len = len(config['app']['pwd']) # the absolute part of the working directory (aka - outside the web space)
+        result['exports'][label] = []
+        if 'js' in result['formats']:
+            with open("%s/%s_%s.js" % (config['app']['export'], label, data_hash), "w") as f:
+                cadquery.exporters.exportShape(p, 'TJS', f)
+                result['exports'][label].append({'name':'js', 'url':'%s/%s_%s.js' % (config['app']['export'][pwd_len:], label, data_hash)})
+                log.info("Exported 'JS'")
+        if 'brp' in result['formats']:
+            Part.export(doc.Objects, "%s/%s_%s.brp" % (config['app']['export'], label, data_hash))
+            result['exports'][label].append({'name':'brp', 'url':'%s/%s_%s.brp' % (config['app']['export'][pwd_len:], label, data_hash)})
+            log.info("Exported 'BRP'")
+        if 'stp' in result['formats']:
+            Part.export(doc.Objects, "%s/%s_%s.stp" % (config['app']['export'], label, data_hash))
+            result['exports'][label].append({'name':'stp', 'url':'%s/%s_%s.stp' % (config['app']['export'][pwd_len:], label, data_hash)})
+            log.info("Exported 'STP'")
+        if 'stl' in result['formats']:
+            Mesh.export(doc.Objects, "%s/%s_%s.stl" % (config['app']['export'], label, data_hash))
+            result['exports'][label].append({'name':'stl', 'url':'%s/%s_%s.stl' % (config['app']['export'][pwd_len:], label, data_hash)})
+            log.info("Exported 'STL'")
+        if 'dxf' in result['formats']:
+            importDXF.export(doc.Objects, "%s/%s_%s.dxf" % (config['app']['export'], label, data_hash))
+            result['exports'][label].append({'name':'dxf', 'url':'%s/%s_%s.dxf' % (config['app']['export'][pwd_len:], label, data_hash)})
+            log.info("Exported 'DXF'")
+        if 'svg' in result['formats']:
+            importSVG.export(doc.Objects, "%s/%s_%s.svg" % (config['app']['export'], label, data_hash))
+            result['exports'][label].append({'name':'svg', 'url':'%s/%s_%s.svg' % (config['app']['export'][pwd_len:], label, data_hash)})
+            log.info("Exported 'SVG'")
+        if 'json' in result['formats'] and label == SWITCH_LAYER:
+            with open("%s/%s_%s.json" % (config['app']['export'], label, data_hash), 'w') as json_file:
+                json_file.write(repr(self))
+            result['exports'][label].append({'name':'json', 'url':'%s/%s_%s.json' % (config['app']['export'][pwd_len:], label, data_hash)})
+            log.info("Exported 'JSON'")
+        # remove all the documents from the view before we move on
+        for o in doc.Objects:
+            doc.removeObject(o.Label)
 
 
 # take the input from the webserver and instantiate and draw the plate
-def build(data_hash, data, config, log):
+def build(data_hash, data, config):
     # create the result object
     result = {}
     result['has_layers'] = False
     result['plates'] = [SWITCH_LAYER]
-    result['formats'] = cfg['app']['formats']
+    result['formats'] = cfg['app']['formats'][:]  # Have to use a copy in case we remove SVG later
     result['exports'] = {}
     p = Plate()
     if 'case-type' in data:
@@ -549,7 +562,7 @@ def build(data_hash, data, config, log):
         p.set_kerf(float(data['kerf']))
     if 'export_svg' in data and not data['export_svg']:
         result['formats'].remove('svg')
-    result = p.draw(result, data['layout'], data_hash, config, log) # draw the plate
+    result = p.draw(result, data['layout'], data_hash, config) # draw the plate
     log.info("Finished drawing: %s" % (data_hash))
     return result # return the metadata result to the webserver
 
