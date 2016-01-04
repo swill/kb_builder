@@ -1,0 +1,6 @@
+argparse==1.2.1
+backports.ssl-match-hostname==3.4.0.2
+cadquery==0.2.0
+certifi==2015.9.6.2
+tornado==4.2.1
+wsgiref==0.1.2
