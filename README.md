@@ -20,18 +20,20 @@ This tool is implemented as a webserver and exposes a UI to be consumed in the b
 
 Install this one a Ubuntu VM on your laptop with either VirtualBox or VMware Fusion.  I have had trouble getting the FreeCAD lib to work correctly on Mac OSX, so if you get it working, please contribute some documentation.  For now I only describe Ubuntu install instructions.
 
-### Install the dependencies
+### Install the OS dependencies
 ```
 $ sudo apt-get install software-properties-common
 $ sudo add-apt-repository ppa:freecad-maintainers/freecad-daily
 $ sudo apt-get update
 $ sudo apt-get upgrade
-$ sudo apt-get -y install unzip
-$ sudo apt-get -y install build-essential
-$ sudo apt-get -y install freecad
-$ sudo apt-get -y install git
-$ sudo apt-get -y install python-pip
-$ sudo apt-get -y install python-dev
+$ sudo apt-get -y install build-essential freecad git python-dev python-pip unzip
+$ sudo pip install --requirement requirements.txt
+```
+
+### Get the source and install python dependancies
+```
+$ git clone https://github.com/swill/kb_builder.git
+$ cd ~/kb_builder
 $ sudo pip install --requirement requirements.txt
 ```
 
@@ -40,7 +42,8 @@ This is a quick start guide.  Review the [full docs here](https://github.com/yor
 
 ```
 $ cd ~/
-$ freecad
+$ sudo freecad
+	# 'sudo' so it creates the correct '/root/.FreeCAD' directory
 	# note the version number
 	# download the appropriate version from here: 
 	# 	https://github.com/yorikvanhavre/Draft-dxf-importer
@@ -53,10 +56,9 @@ $ cp Draft-dxf-importer-1.38/* /root/.FreeCAD/
 	#	not your users because we are running with 'sudo'
 ```
 
-### Get the source and run
+### Run the source
 ```
-$ git clone https://github.com/swill/kb_builder.git
-$ cd kb_builder
+$ cd ~/kb_builder
 $ sudo ./kb_builder.py
 ```
 
