@@ -66,20 +66,20 @@ class Plate(object):
         self.switch_type = 1
         self.stab_type = 0
         self.stabs = {
-            "300":19.05,  # 3 unit
-            "400":28.575,  # 4 unit
-            "450":34.671,  # 4.5 unit
-            "550":42.8625,  # 5.5 unit
-            "625":50,  # 6.25 unit
-            "650":52.38,  # 6.5 unit
-            "700":57.15,  # 7 unit
-            "800":66.675,  # 8 unit
-            "900":66.675,  # 9 unit
-            "1000":66.675  # 10 unit
+            "300": 19.05,  # 3 unit
+            "400": 28.575,  # 4 unit
+            "450": 34.671,  # 4.5 unit
+            "550": 42.8625,  # 5.5 unit
+            "625": 50,  # 6.25 unit
+            "650": 52.38,  # 6.5 unit
+            "700": 57.15,  # 7 unit
+            "800": 66.675,  # 8 unit
+            "900": 66.675,  # 9 unit
+            "1000": 66.675  # 10 unit
         }
         self.layout = []
-        self.case = {'type':None}
-        self.origin = (0,0)
+        self.case = {'type': None}
+        self.origin = (0, 0)
         self.usb_width = 10
 
     def set_x_pad(self, x):
@@ -108,10 +108,10 @@ class Plate(object):
             self.stab_type = s
 
     def set_poker_holes(self, d):
-        self.case = {'type':'poker', 'hole_diameter':d}
+        self.case = {'type': 'poker', 'hole_diameter': d}
 
     def set_sandwich_holes(self, h, d):
-        self.case = {'type':'sandwich', 'holes':h, 'x_holes':0, 'y_holes':0, 'hole_diameter':d}
+        self.case = {'type': 'sandwich', 'holes': h, 'x_holes': 0, 'y_holes': 0, 'hole_diameter': d}
 
     # this is the main draw function for the class and handles the logical flow and orchestration
     def draw(self, result, layout, data_hash, config):
@@ -347,15 +347,15 @@ class Plate(object):
             ]
         elif t == 4:  # alps compatible switch, not MX compatible
             points = [
-                (7.75-k,-6.4+k), (7.75-k,6.4-k),
-                (-7.75+k,6.4-k), (-7.75+k,-6.4+k),
-                (7.75-k,-6.4+k),
+                (7.75-k, -6.4+k), (7.75-k, 6.4-k),
+                (-7.75+k, 6.4-k), (-7.75+k, -6.4+k),
+                (7.75-k, -6.4+k),
             ]
         if rotate:
-            points = self.rotate_points(points, 90, (0,0))
+            points = self.rotate_points(points, 90, (0, 0))
         if r:
-            points = self.rotate_points(points, r, (0,0))
-        p = self.center(p, c[0] ,c[1]).polyline(points).cutThruAll()
+            points = self.rotate_points(points, r, (0, 0))
+        p = self.center(p, c[0], c[1]).polyline(points).cutThruAll()
 
         # cut 2 unit stabilizer cutout
         if (w >= 2 and w < 3) or (rotate and h >= 2 and h < 3):  # 2 unit stabilizer
@@ -368,9 +368,9 @@ class Plate(object):
                     (-16.1+k,-2.3+k), (-15.225+k,-2.3+k), (-15.225+k,-5.53+k), (-13.6+k,-5.53+k), (-13.6+k,-6.45+k), (-10.3-k,-6.45+k), (-10.3-k,-5.53+k), (-8.575-k,-5.53+k), (-8.575-k,-4.73+k), (-7+k,-4.73+k), (-7+k,-7+k), (7-k,-7+k)
                 ]
                 if rotate:
-                    points = self.rotate_points(points, 90, (0,0))
+                    points = self.rotate_points(points, 90, (0, 0))
                 if rs:
-                    points = self.rotate_points(points, rs, (0,0))
+                    points = self.rotate_points(points, rs, (0, 0))
                 p = p.polyline(points).cutThruAll()
             if s == 1:
                 # cherry spec 2u stabilizer
@@ -381,20 +381,20 @@ class Plate(object):
                     (-16.1+k,-2.3+k), (-15.225+k,-2.3+k), (-15.225+k,-5.53+k), (-8.575-k,-5.53+k), (-8.575-k,-4.73+k), (-7+k,-4.73+k), (-7+k,-7+k), (7-k,-7+k)
                 ]
                 if rotate:
-                    points = self.rotate_points(points, 90, (0,0))
+                    points = self.rotate_points(points, 90, (0, 0))
                 if rs:
-                    points = self.rotate_points(points, rs, (0,0))
+                    points = self.rotate_points(points, rs, (0, 0))
                 p = p.polyline(points).cutThruAll()
             if s == 2:
                 # costar stabilizers only
                 points_l = [(-10.3-k,-6.45+k), (-13.6+k,-6.45+k), (-13.6+k,7.75-k), (-10.3-k,7.75-k), (-10.3-k,-6.45+k)]
                 points_r = [(10.3+k,-6.45+k), (13.6-k,-6.45+k), (13.6-k,7.75-k), (10.3+k,7.75-k), (10.3+k,-6.45+k)]
                 if rotate:
-                    points_l = self.rotate_points(points_l, 90, (0,0))
-                    points_r = self.rotate_points(points_r, 90, (0,0))
+                    points_l = self.rotate_points(points_l, 90, (0, 0))
+                    points_r = self.rotate_points(points_r, 90, (0, 0))
                 if rs:
-                    points_l = self.rotate_points(points_l, rs, (0,0))
-                    points_r = self.rotate_points(points_r, rs, (0,0))
+                    points_l = self.rotate_points(points_l, rs, (0, 0))
+                    points_r = self.rotate_points(points_r, rs, (0, 0))
                 p = p.polyline(points_l).cutThruAll()
                 p = p.polyline(points_r).cutThruAll()
 
@@ -417,9 +417,9 @@ class Plate(object):
                     (-x-4.2+k,-2.3+k), (-x-3.325+k,-2.3+k), (-x-3.325+k,-5.53+k), (-x-1.65+k,-5.53+k), (-x-1.65+k,-6.45+k), (-x+1.65-k,-6.45+k), (-x+1.65-k,-5.53+k), (-x+3.325-k,-5.53+k), (-x+3.325-k,-2.3+k), (-7+k,-2.3+k), (-7+k,-7+k), (7-k,-7+k)
                 ]
                 if rotate:
-                    points = self.rotate_points(points, 90, (0,0))
+                    points = self.rotate_points(points, 90, (0, 0))
                 if rs:
-                    points = self.rotate_points(points, rs, (0,0))
+                    points = self.rotate_points(points, rs, (0, 0))
                 p = p.polyline(points).cutThruAll()
             if s == 1:
                 # cherry spec spacebar stabilizer
@@ -430,20 +430,20 @@ class Plate(object):
                     (-x-4.2+k,-2.3+k), (-x-3.325+k,-2.3+k), (-x-3.325+k,-5.53+k), (-x+3.325-k,-5.53+k), (-x+3.325-k,-2.3+k), (-7+k,-2.3+k), (-7+k,-7+k), (7-k,-7+k)
                 ]
                 if rotate:
-                    points = self.rotate_points(points, 90, (0,0))
+                    points = self.rotate_points(points, 90, (0, 0))
                 if rs:
-                    points = self.rotate_points(points, rs, (0,0))
+                    points = self.rotate_points(points, rs, (0, 0))
                 p = p.polyline(points).cutThruAll()
             if s == 2:
                 # costar stabilizers only
                 points_l = [(-x+1.65-k,-6.45+k), (-x-1.65+k,-6.45+k), (-x-1.65+k,7.75-k), (-x+1.65-k,7.75-k), (-x+1.65-k,-6.45+k)]
                 points_r = [(x-1.65+k,-6.45+k), (x+1.65-k,-6.45+k), (x+1.65-k,7.75-k), (x-1.65+k,7.75-k), (x-1.65+k,-6.45+k)]
                 if rotate:
-                    points_l = self.rotate_points(points_l, 90, (0,0))
-                    points_r = self.rotate_points(points_r, 90, (0,0))
+                    points_l = self.rotate_points(points_l, 90, (0, 0))
+                    points_r = self.rotate_points(points_r, 90, (0, 0))
                 if rs:
-                    points_l = self.rotate_points(points_l, rs, (0,0))
-                    points_r = self.rotate_points(points_r, rs, (0,0))
+                    points_l = self.rotate_points(points_l, rs, (0, 0))
+                    points_r = self.rotate_points(points_r, rs, (0, 0))
                 p = p.polyline(points_l).cutThruAll()
                 p = p.polyline(points_r).cutThruAll()
         self.x_off += c[0]
@@ -485,32 +485,32 @@ class Plate(object):
         if 'js' in result['formats']:
             with open("%s/%s_%s.js" % (config['app']['export'], label, data_hash), "w") as f:
                 cadquery.exporters.exportShape(p, 'TJS', f)
-                result['exports'][label].append({'name':'js', 'url':'%s/%s_%s.js' % (config['app']['export'][pwd_len:], label, data_hash)})
+                result['exports'][label].append({'name': 'js', 'url': '%s/%s_%s.js' % (config['app']['export'][pwd_len:], label, data_hash)})
                 log.info("Exported 'JS'")
         if 'brp' in result['formats']:
             Part.export(doc.Objects, "%s/%s_%s.brp" % (config['app']['export'], label, data_hash))
-            result['exports'][label].append({'name':'brp', 'url':'%s/%s_%s.brp' % (config['app']['export'][pwd_len:], label, data_hash)})
+            result['exports'][label].append({'name': 'brp', 'url': '%s/%s_%s.brp' % (config['app']['export'][pwd_len:], label, data_hash)})
             log.info("Exported 'BRP'")
         if 'stp' in result['formats']:
             Part.export(doc.Objects, "%s/%s_%s.stp" % (config['app']['export'], label, data_hash))
-            result['exports'][label].append({'name':'stp', 'url':'%s/%s_%s.stp' % (config['app']['export'][pwd_len:], label, data_hash)})
+            result['exports'][label].append({'name': 'stp', 'url': '%s/%s_%s.stp' % (config['app']['export'][pwd_len:], label, data_hash)})
             log.info("Exported 'STP'")
         if 'stl' in result['formats']:
             Mesh.export(doc.Objects, "%s/%s_%s.stl" % (config['app']['export'], label, data_hash))
-            result['exports'][label].append({'name':'stl', 'url':'%s/%s_%s.stl' % (config['app']['export'][pwd_len:], label, data_hash)})
+            result['exports'][label].append({'name': 'stl', 'url': '%s/%s_%s.stl' % (config['app']['export'][pwd_len:], label, data_hash)})
             log.info("Exported 'STL'")
         if 'dxf' in result['formats']:
             importDXF.export(doc.Objects, "%s/%s_%s.dxf" % (config['app']['export'], label, data_hash))
-            result['exports'][label].append({'name':'dxf', 'url':'%s/%s_%s.dxf' % (config['app']['export'][pwd_len:], label, data_hash)})
+            result['exports'][label].append({'name': 'dxf', 'url': '%s/%s_%s.dxf' % (config['app']['export'][pwd_len:], label, data_hash)})
             log.info("Exported 'DXF'")
         if 'svg' in result['formats']:
             importSVG.export(doc.Objects, "%s/%s_%s.svg" % (config['app']['export'], label, data_hash))
-            result['exports'][label].append({'name':'svg', 'url':'%s/%s_%s.svg' % (config['app']['export'][pwd_len:], label, data_hash)})
+            result['exports'][label].append({'name': 'svg', 'url': '%s/%s_%s.svg' % (config['app']['export'][pwd_len:], label, data_hash)})
             log.info("Exported 'SVG'")
         if 'json' in result['formats'] and label == SWITCH_LAYER:
             with open("%s/%s_%s.json" % (config['app']['export'], label, data_hash), 'w') as json_file:
                 json_file.write(repr(self))
-            result['exports'][label].append({'name':'json', 'url':'%s/%s_%s.json' % (config['app']['export'][pwd_len:], label, data_hash)})
+            result['exports'][label].append({'name': 'json', 'url': '%s/%s_%s.json' % (config['app']['export'][pwd_len:], label, data_hash)})
             log.info("Exported 'JSON'")
         # remove all the documents from the view before we move on
         for o in doc.Objects:
@@ -527,10 +527,10 @@ def build(data_hash, data, config):
     result['exports'] = {}
     p = Plate()
     if 'case-type' in data:
-        if data['case-type']=='poker':
+        if data['case-type'] == 'poker':
             if 'mount-holes-size' in data:
                 p.set_poker_holes(float(data['mount-holes-size']))
-        if data['case-type']=='sandwich':
+        if data['case-type'] == 'sandwich':
             result['plates'] = result['plates'] + [OPEN_LAYER, CLOSED_LAYER, BOTTOM_LAYER]
             result['has_layers'] = True
             if 'mount-holes-num' in data and 'mount-holes-size' in data:
