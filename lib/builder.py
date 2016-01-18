@@ -26,15 +26,6 @@ import sys
 
 from config import config as cfg
 
-log = logging.getLogger()
-
-if 'lib' in cfg and 'freecad_lib_dir' in cfg['lib'] and cfg['lib']['freecad_lib_dir'] != "":
-    sys.path.append(cfg['lib']['freecad_lib_dir'])
-if 'lib' in cfg and 'freecad_mod_dir' in cfg['lib'] and cfg['lib']['freecad_mod_dir'] != "":
-    for mod in os.listdir(cfg['lib']['freecad_mod_dir']):
-        mod_path = os.path.join(cfg['lib']['freecad_mod_dir'], mod)
-        if os.path.isdir(mod_path): sys.path.append(mod_path)
-
 import FreeCAD
 import cadquery
 import importDXF
@@ -42,10 +33,21 @@ import importSVG
 import Mesh
 import Part
 
+log = logging.getLogger()
+
+if 'lib' in cfg and 'freecad_lib_dir' in cfg['lib'] and cfg['lib']['freecad_lib_dir'] != "":
+    sys.path.append(cfg['lib']['freecad_lib_dir'])
+if 'lib' in cfg and 'freecad_mod_dir' in cfg['lib'] and cfg['lib']['freecad_mod_dir'] != "":
+    for mod in os.listdir(cfg['lib']['freecad_mod_dir']):
+        mod_path = os.path.join(cfg['lib']['freecad_mod_dir'], mod)
+        if os.path.isdir(mod_path):
+            sys.path.append(mod_path)
+
 SWITCH_LAYER = 'switch'
 BOTTOM_LAYER = 'bottom'
 CLOSED_LAYER = 'closed'
 OPEN_LAYER = 'open'
+
 
 class Plate(object):
     def __init__(self):
@@ -64,22 +66,21 @@ class Plate(object):
         self.switch_type = 1
         self.stab_type = 0
         self.stabs = {
-            "300":19.05, # 3 unit
-            "400":28.575, # 4 unit
-            "450":34.671, # 4.5 unit
-            "550":42.8625, # 5.5 unit
-            "625":50, # 6.25 unit
-            "650":52.38, # 6.5 unit
-            "700":57.15, # 7 unit
-            "800":66.675, # 8 unit
-            "900":66.675, # 9 unit
-            "1000":66.675 # 10 unit
+            "300":19.05,  # 3 unit
+            "400":28.575,  # 4 unit
+            "450":34.671,  # 4.5 unit
+            "550":42.8625,  # 5.5 unit
+            "625":50,  # 6.25 unit
+            "650":52.38,  # 6.5 unit
+            "700":57.15,  # 7 unit
+            "800":66.675,  # 8 unit
+            "900":66.675,  # 9 unit
+            "1000":66.675  # 10 unit
         }
         self.layout = []
         self.case = {'type':None}
         self.origin = (0,0)
         self.usb_width = 10
-
 
     def set_x_pad(self, x):
         self.x_pad = x
@@ -112,7 +113,6 @@ class Plate(object):
     def set_sandwich_holes(self, h, d):
         self.case = {'type':'sandwich', 'holes':h, 'x_holes':0, 'y_holes':0, 'hole_diameter':d}
 
-
     # this is the main draw function for the class and handles the logical flow and orchestration
     def draw(self, result, layout, data_hash, config):
         self.parse_layout(layout)
@@ -122,18 +122,18 @@ class Plate(object):
 
         # cut the mount holes in the plate
         if not self.case['type']:
-            p = self.center(p, -self.width/2 + self.kerf, -self.height/2 + self.kerf) # move to top left of the plate
+            p = self.center(p, -self.width/2 + self.kerf, -self.height/2 + self.kerf)  # move to top left of the plate
         if self.case['type'] == 'poker':
-            hole_points = [(-139,9.2), (-117.3,-19.4), (-14.3,0), (48,37.9), (117.55,-19.4), (139,9.2)] # holes
-            rect_points = [(140.75,9.2), (-140.75,9.2)] # edge slots
-            rect_size = (3.5, 5) # edge slot cutout to edge
+            hole_points = [(-139,9.2), (-117.3,-19.4), (-14.3,0), (48,37.9), (117.55,-19.4), (139,9.2)]  # holes
+            rect_points = [(140.75,9.2), (-140.75,9.2)]  # edge slots
+            rect_size = (3.5, 5)  # edge slot cutout to edge
             for c in hole_points:
                 p = self.cut_hole(p, c, self.case['hole_diameter']).center(-c[0],-c[1])
             for c in rect_points:
                 p = self.cut_rect(p, c, rect_size[0], rect_size[1]).center(-c[0],-c[1])
-            p = self.center(p, -self.width/2 + self.kerf, -self.height/2 + self.kerf) # move to top left of the plate
+            p = self.center(p, -self.width/2 + self.kerf, -self.height/2 + self.kerf)  # move to top left of the plate
         if self.case['type'] == 'sandwich':
-            p = self.center(p, -self.width/2 + self.kerf, -self.height/2 + self.kerf) # move to top left of the plate
+            p = self.center(p, -self.width/2 + self.kerf, -self.height/2 + self.kerf)  # move to top left of the plate
             if 'holes' in self.case and self.case['holes'] >= 4 and 'x_holes' in self.case and 'y_holes' in self.case:
                 self.layout_sandwich_holes()
                 radius = self.case['hole_diameter']/2 - self.kerf
@@ -163,22 +163,22 @@ class Plate(object):
                     kx = x
                 if 'y' in key and k == 0:
                     y = key['y']*self.u1
-                if r == 0 and k == 0: # handle placement of the first key in first row
+                if r == 0 and k == 0:  # handle placement of the first key in first row
                     p = self.center(p, key['w']*self.u1/2, self.u1/2)
                     x += self.x_pad
                     y += self.y_pad
                     # set x_off negative since the 'cut_switch' will append 'x' and we need to account inital spacing
                     self.x_off = -(x - (self.u1/2 + key['w']*self.u1/2) - kx)
-                elif k == 0: # handle changing rows
-                    p = self.center(p, -self.x_off, self.u1) # move to the next row
-                    self.x_off = 0 # reset back to the left side of the plate
+                elif k == 0:  # handle changing rows
+                    p = self.center(p, -self.x_off, self.u1)  # move to the next row
+                    self.x_off = 0  # reset back to the left side of the plate
                     x += self.u1/2 + key['w']*self.u1/2
-                else: # handle all other keys
+                else:  # handle all other keys
                     x += prev_width*self.u1/2 + key['w']*self.u1/2
-                if prev_y_off != 0: # prev_y_off != 0
+                if prev_y_off != 0:  # prev_y_off != 0
                     y += -prev_y_off
                     prev_y_off = 0
-                if 'h' in key and key['h'] > 1: # deal with vertical keys
+                if 'h' in key and key['h'] > 1:  # deal with vertical keys
                     prev_y_off = key['h']*self.u1/2 - self.u1/2
                     y += prev_y_off
                 p = self.cut_switch(p, (x, y), key)
@@ -208,20 +208,19 @@ class Plate(object):
             self.export(p, result, OPEN_LAYER, data_hash, config)
         return result
 
-
     # parse the supplied layout to determine size and populate the properties of each 'key'
     def parse_layout(self, layout):
         layout_width = 0
         layout_height = 0
-        key_desc = False # track if current is not a key and only describes the next key
+        key_desc = False  # track if current is not a key and only describes the next key
         for row in layout:
-            if isinstance(row, list): # only handle arrays of keys
+            if isinstance(row, list):  # only handle arrays of keys
                 row_width = 0
                 row_height = 0
                 row_layout = []
                 for k in row:
                     key = {}
-                    if isinstance(k, dict): # descibes the next key
+                    if isinstance(k, dict):  # descibes the next key
                         key = k
                         if 'w' not in key:
                             key['w'] = 1
@@ -229,8 +228,8 @@ class Plate(object):
                             key['h'] = 1
                         row_layout.append(key)
                         key_desc = True
-                    else: # is just a standard key (we know its a single unit key)
-                        if not key_desc: # only handle if it was not already handled as a key_desc
+                    else:  # is just a standard key (we know its a single unit key)
+                        if not key_desc:  # only handle if it was not already handled as a key_desc
                             key['w'] = 1
                             key['h'] = 1
                             row_layout.append(key)
@@ -238,7 +237,7 @@ class Plate(object):
                     if 'w' in key:
                         row_width += key['w']
                     if 'x' in key:
-                        row_width += key['x'] # offsets count towards total row width
+                        row_width += key['x']  # offsets count towards total row width
                     if 'y' in key:
                         row_height = key['y']
                 self.layout.append(row_layout)
@@ -254,7 +253,6 @@ class Plate(object):
         self.width = layout_width*self.u1 + 2*self.x_pad + 2*self.kerf
         self.height = layout_height + 2*self.y_pad + 2*self.kerf
 
-
     # initialize the plate object 'p' and get it ready to work with
     def init_plate(self):
         p = cadquery.Workplane("front").box(self.width, self.height, self.thickness)
@@ -262,19 +260,18 @@ class Plate(object):
             p = p.edges("|Z").fillet(self.fillet)
         return p.faces("<Z").workplane()
 
-
     # since the sandwich plate has a dynamic number of holes, determine where the specified holes should be placed
     def layout_sandwich_holes(self):
         if 'holes' in self.case and self.case['holes'] >= 4 and 'x_holes' in self.case and 'y_holes' in self.case:
             holes = int(self.case['holes'])
-            if holes % 2 == 0 and holes >= 4: # holes needs to be even and the first 4 are put in the corners
-                x = self.width - self.x_pad - self.kerf # x length to split
-                y = self.height - self.y_pad - self.kerf # y length to split
-                _x = 0 # number of holes on each x side (not counting the corner holes)
-                _y = 0 # number of holes on each y side (not counting the corner holes)
-                free = (holes-4)/2 # number of free holes to be placed on either x or y sides
-                for f in range(free): # loop through the available holes and place them
-                    if x/(_x+1) == y/(_y+1): # if equal, add the hole to the longer side
+            if holes % 2 == 0 and holes >= 4:  # holes needs to be even and the first 4 are put in the corners
+                x = self.width - self.x_pad - self.kerf  # x length to split
+                y = self.height - self.y_pad - self.kerf  # y length to split
+                _x = 0  # number of holes on each x side (not counting the corner holes)
+                _y = 0  # number of holes on each y side (not counting the corner holes)
+                free = (holes-4)/2  # number of free holes to be placed on either x or y sides
+                for f in range(free):  # loop through the available holes and place them
+                    if x/(_x+1) == y/(_y+1):  # if equal, add the hole to the longer side
                         if x >= y:
                             _x += 1
                         else:
@@ -286,7 +283,6 @@ class Plate(object):
                 self.case['x_holes'] = _x
                 self.case['y_holes'] = _y
 
-
     # take a set of points and rotate them 'r' degrees around 'a'
     def rotate_points(self, points, r, a):
         result = []
@@ -296,18 +292,15 @@ class Plate(object):
             result.append((px,py))
         return result
 
-
     # cut a hole with center 'c' and diameter 'd'
     def cut_hole(self, p, c, d):
         p = self.center(p, c[0], c[1]).hole(d)
         return p
 
-
     # cut a rectangle with center 'c' with a width 'w' and heigh 'h'
     def cut_rect(self, p, c, w, h):
         p = self.center(p, c[0], c[1]).rect(w, h)
         return p
-
 
     # cut a switch opening with center 'c' defined by the 'key'
     def cut_switch(self, p, c, key=None):
@@ -327,32 +320,32 @@ class Plate(object):
         if 'h' in key and h > w:
             rotate = True
         points = []
-        if t == 0: # standard square switch
+        if t == 0:  # standard square switch
             points = [
                 (7-k+self.grow_x,-7+k-self.grow_y), (7-k+self.grow_x,7-k+self.grow_y),
                 (-7+k-self.grow_x,7-k+self.grow_y), (-7+k-self.grow_x,-7+k-self.grow_y),
                 (7-k+self.grow_x,-7+k-self.grow_y)
             ]
-        elif t == 1: # mx and alps compatible switch, mx can open
+        elif t == 1:  # mx and alps compatible switch, mx can open
             points = [
                 (7-k,-7+k), (7-k,-6.4+k), (7.8-k,-6.4+k), (7.8-k,6.4-k), (7-k,6.4-k), (7-k,7-k),
                 (-7+k,7-k), (-7+k,6.4-k), (-7.8+k,6.4-k), (-7.8+k,-6.4+k), (-7+k,-6.4+k), (-7+k,-7+k), (7-k,-7+k)
             ]
-        elif t == 2: # mx switch can open (side wings)
+        elif t == 2:  # mx switch can open (side wings)
             points = [
                 (7-k,-7+k), (7-k,-6+k), (7.8-k,-6+k), (7.8-k,-2.9-k), (7-k,-2.9-k),
                 (7-k,2.9+k), (7.8-k,2.9+k), (7.8-k,6-k), (7-k,6-k), (7-k,7-k), (-7+k,7-k),
                 (-7+k,6-k), (-7.8+k,6-k), (-7.8+k,2.9+k), (-7+k,2.9+k),
                 (-7+k,-2.9-k), (-7.8+k,-2.9-k), (-7.8+k,-6+k), (-7+k,-6+k), (-7+k,-7+k), (7-k,-7+k)
             ]
-        elif t == 3: # rotatable mx switch can open both ways (side and top/bottom wings)
+        elif t == 3:  # rotatable mx switch can open both ways (side and top/bottom wings)
             points = [
                 (7-k,-7+k), (7-k,-6+k), (7.8-k,-6+k), (7.8-k,-2.9-k), (7-k,-2.9-k), (7-k,2.9+k), (7.8-k,2.9+k), (7.8-k,6-k), (7-k,6-k),
                 (7-k,7-k), (6-k,7-k), (6-k,7.8-k), (2.9+k,7.8-k), (2.9+k,7-k), (-2.9-k,7-k), (-2.9-k,7.8-k), (-6+k,7.8-k), (-6+k,7-k),
                 (-7+k,7-k), (-7+k,6-k), (-7.8+k,6-k), (-7.8+k,2.9+k), (-7+k,2.9+k), (-7+k,-2.9-k), (-7.8+k,-2.9-k), (-7.8+k,-6+k), (-7+k,-6+k),
                 (-7+k,-7+k), (-6+k,-7+k), (-6+k,-7.8+k), (-2.9-k,-7.8+k), (-2.9-k,-7+k), (2.9+k,-7+k), (2.9+k,-7.8+k), (6-k,-7.8+k), (6-k,-7+k), (7-k,-7+k)
             ]
-        elif t == 4: # alps compatible switch, not MX compatible
+        elif t == 4:  # alps compatible switch, not MX compatible
             points = [
                 (7.75-k,-6.4+k), (7.75-k,6.4-k),
                 (-7.75+k,6.4-k), (-7.75+k,-6.4+k),
@@ -365,7 +358,7 @@ class Plate(object):
         p = self.center(p, c[0] ,c[1]).polyline(points).cutThruAll()
 
         # cut 2 unit stabilizer cutout
-        if (w >= 2 and w < 3) or (rotate and h >= 2 and h < 3): # 2 unit stabilizer
+        if (w >= 2 and w < 3) or (rotate and h >= 2 and h < 3):  # 2 unit stabilizer
             if s == 0:
                 # modified mx cherry spec 2u stabilizer to support costar
                 points = [
@@ -410,7 +403,7 @@ class Plate(object):
             l = w
             if rotate:
                 l = h
-            x = 11.95 # default to a 2unit stabilizer if not found...
+            x = 11.95  # default to a 2unit stabilizer if not found...
             # use the length of the key to determine if we have a known stabilizer config for that key
             stab_size = '%s' % (str(l).replace('.', '').ljust(3, '0') if l < 10 else str(l).replace('.', '').ljust(4, '0'))
             if stab_size in self.stabs:
@@ -456,14 +449,12 @@ class Plate(object):
         self.x_off += c[0]
         return p
 
-
     # sets the center and also records the relative distance it moved in relation to 'origin'
     def center(self, p, x, y):
         _x = self.origin[0]
         _y = self.origin[1]
         self.origin = (_x+x, _y+y)
         return p.center(x, y)
-
 
     def __repr__(self):
         '''Print out all Plate object configuration settings.'''
@@ -482,8 +473,6 @@ class Plate(object):
 
         return json.dumps(settings, sort_keys=True, indent=4, separators=(',', ': '))
 
-
-
     def export(self, p, result, label, data_hash, config):
         # export the plate to different file formats
         log.info("Exporting %s layer for %s" % (label, data_hash))
@@ -491,7 +480,7 @@ class Plate(object):
         Part.show(p.val().wrapped)
         doc = FreeCAD.ActiveDocument
         # export the drawing into different formats
-        pwd_len = len(config['app']['pwd']) # the absolute part of the working directory (aka - outside the web space)
+        pwd_len = len(config['app']['pwd'])  # the absolute part of the working directory (aka - outside the web space)
         result['exports'][label] = []
         if 'js' in result['formats']:
             with open("%s/%s_%s.js" % (config['app']['export'], label, data_hash), "w") as f:
@@ -562,8 +551,6 @@ def build(data_hash, data, config):
         p.set_kerf(float(data['kerf']))
     if 'export_svg' in data and not data['export_svg']:
         result['formats'].remove('svg')
-    result = p.draw(result, data['layout'], data_hash, config) # draw the plate
+    result = p.draw(result, data['layout'], data_hash, config)  # draw the plate
     log.info("Finished drawing: %s" % (data_hash))
-    return result # return the metadata result to the webserver
-
-
+    return result  # return the metadata result to the webserver
