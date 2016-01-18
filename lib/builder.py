@@ -35,9 +35,11 @@ import Part
 
 log = logging.getLogger()
 
-if 'lib' in cfg and 'freecad_lib_dir' in cfg['lib'] and cfg['lib']['freecad_lib_dir'] != "":
+if 'lib' in cfg and 'freecad_lib_dir' in cfg['lib'] and \
+        cfg['lib']['freecad_lib_dir'] != "":
     sys.path.append(cfg['lib']['freecad_lib_dir'])
-if 'lib' in cfg and 'freecad_mod_dir' in cfg['lib'] and cfg['lib']['freecad_mod_dir'] != "":
+if 'lib' in cfg and 'freecad_mod_dir' in cfg['lib'] and \
+        cfg['lib']['freecad_mod_dir'] != "":
     for mod in os.listdir(cfg['lib']['freecad_mod_dir']):
         mod_path = os.path.join(cfg['lib']['freecad_mod_dir'], mod)
         if os.path.isdir(mod_path):
@@ -111,9 +113,11 @@ class Plate(object):
         self.case = {'type': 'poker', 'hole_diameter': d}
 
     def set_sandwich_holes(self, h, d):
-        self.case = {'type': 'sandwich', 'holes': h, 'x_holes': 0, 'y_holes': 0, 'hole_diameter': d}
+        self.case = {'type': 'sandwich', 'holes': h, 'x_holes': 0,
+                     'y_holes': 0, 'hole_diameter': d}
 
-    # this is the main draw function for the class and handles the logical flow and orchestration
+    # this is the main draw function for the class and handles the logical flow
+    # and orchestration
     def draw(self, result, layout, data_hash, config):
         self.parse_layout(layout)
         p = self.init_plate()
@@ -122,7 +126,8 @@ class Plate(object):
 
         # cut the mount holes in the plate
         if not self.case['type']:
-            p = self.center(p, -self.width/2 + self.kerf, -self.height/2 + self.kerf)  # move to top left of the plate
+            p = self.center(p, -self.width/2 + self.kerf, -self.height/2 +
+                            self.kerf)  # move to top left of the plate
         if self.case['type'] == 'poker':
             hole_points = [(-139, 9.2), (-117.3, -19.4), (-14.3, 0),
                            (48, 37.9), (117.55, -19.4), (139, 9.2)]  # holes
@@ -134,8 +139,10 @@ class Plate(object):
                 p = self.cut_rect(p, c, rect_size[0], rect_size[1]).center(-c[0], -c[1])
             p = self.center(p, -self.width/2 + self.kerf, -self.height/2 + self.kerf)  # move to top left of the plate
         if self.case['type'] == 'sandwich':
-            p = self.center(p, -self.width/2 + self.kerf, -self.height/2 + self.kerf)  # move to top left of the plate
-            if 'holes' in self.case and self.case['holes'] >= 4 and 'x_holes' in self.case and 'y_holes' in self.case:
+            p = self.center(p, -self.width/2 + self.kerf, -self.height/2 +
+                            self.kerf)  # move to top left of the plate
+            if 'holes' in self.case and self.case['holes'] >= 4 and \
+                    'x_holes' in self.case and 'y_holes' in self.case:
                 self.layout_sandwich_holes()
                 radius = self.case['hole_diameter']/2 - self.kerf
                 x_gap = (self.width - self.x_pad - 2*self.kerf)/(self.case['x_holes'] + 1)
@@ -248,7 +255,7 @@ class Plate(object):
                 self.layout.append(row_layout)
                 if row_width > layout_width:
                     layout_width = row_width
-                layout_height += self.u1 + row_height*self.u1;
+                layout_height += self.u1 + row_height*self.u1
             # hidden global features
             if isinstance(row, dict):
                 if 'grow_y' in row and (type(row['grow_y']) == int or type(row['grow_y']) == float):
@@ -607,7 +614,8 @@ def build(data_hash, data, config):
             result['plates'] = result['plates'] + [OPEN_LAYER, CLOSED_LAYER, BOTTOM_LAYER]
             result['has_layers'] = True
             if 'mount-holes-num' in data and 'mount-holes-size' in data:
-                p.set_sandwich_holes(int(data['mount-holes-num']), float(data['mount-holes-size']))
+                p.set_sandwich_holes(int(data['mount-holes-num']),
+                                     float(data['mount-holes-size']))
     if 'switch-type' in data:
         p.set_switch_type(int(data['switch-type']))
     if 'stab-type' in data:
