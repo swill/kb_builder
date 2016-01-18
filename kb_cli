@@ -20,18 +20,36 @@ logging.basicConfig()
 parser = argparse.ArgumentParser()
 
 parser.add_argument('-f', '--file', help='File containing the KLE data.')
-parser.add_argument('-n', '--name', help='Output file basename (Default: generate a hash or use -f)')
-parser.add_argument('--switch', help='Switch type: mx, (*)alpsmx, mx-open, alps')
-parser.add_argument('--stab', help='Stabilizer type: cherry, costar, (*)cherry-costar, alps')
+parser.add_argument(
+    '-n', '--name',
+    help='Output file basename (Default: generate a hash or use -f)')
+parser.add_argument(
+    '--switch', help='Switch type: mx, (*)alpsmx, mx-open, alps')
+parser.add_argument(
+    '--stab', help='Stabilizer type: cherry, costar, (*)cherry-costar, alps')
 parser.add_argument('--case', help='Case type: (*)none, poker, sandwich')
-parser.add_argument('--holes', default=6, type=int, help='Number of holes in the case (Default: 6)')
-parser.add_argument('--hole-diameter', default=3, type=int, help='Case hole size in mm (Default: 3)')
-parser.add_argument('--height', default=4, type=int, help='Amount to pad the height (Default: 4)')
-parser.add_argument('--width', default=4, type=int, help='Amount to pad the width (Default: 4)')
-parser.add_argument('--corners', default=0, type=int, help='Radius for rounded corners, 0 to disable (Default: 0)')
-parser.add_argument('--thickness', default=0, type=int, help='Plate thickness, 0 to disable (Default: 0)')
-parser.add_argument('--kerf', default=0, type=int, help='Kerf, 0 to disable (Default: 0)')
-parser.add_argument('--svg', action='store_true', help='Generate an SVG file too.')
+parser.add_argument(
+    '--holes', default=6, type=int,
+    help='Number of holes in the case (Default: 6)')
+parser.add_argument(
+    '--hole-diameter', default=3, type=int,
+    help='Case hole size in mm (Default: 3)')
+parser.add_argument(
+    '--height', default=4, type=int,
+    help='Amount to pad the height (Default: 4)')
+parser.add_argument(
+    '--width', default=4, type=int,
+    help='Amount to pad the width (Default: 4)')
+parser.add_argument(
+    '--corners', default=0, type=int,
+    help='Radius for rounded corners, 0 to disable (Default: 0)')
+parser.add_argument(
+    '--thickness', default=0, type=int,
+    help='Plate thickness, 0 to disable (Default: 0)')
+parser.add_argument(
+    '--kerf', default=0, type=int, help='Kerf, 0 to disable (Default: 0)')
+parser.add_argument(
+    '--svg', action='store_true', help='Generate an SVG file too.')
 args = parser.parse_args()
 
 # Figure out what kind of switch it is
