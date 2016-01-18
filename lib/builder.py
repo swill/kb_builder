@@ -124,13 +124,14 @@ class Plate(object):
         if not self.case['type']:
             p = self.center(p, -self.width/2 + self.kerf, -self.height/2 + self.kerf)  # move to top left of the plate
         if self.case['type'] == 'poker':
-            hole_points = [(-139,9.2), (-117.3,-19.4), (-14.3,0), (48,37.9), (117.55,-19.4), (139,9.2)]  # holes
-            rect_points = [(140.75,9.2), (-140.75,9.2)]  # edge slots
+            hole_points = [(-139, 9.2), (-117.3, -19.4), (-14.3, 0),
+                           (48, 37.9), (117.55, -19.4), (139, 9.2)]  # holes
+            rect_points = [(140.75, 9.2), (-140.75, 9.2)]  # edge slots
             rect_size = (3.5, 5)  # edge slot cutout to edge
             for c in hole_points:
-                p = self.cut_hole(p, c, self.case['hole_diameter']).center(-c[0],-c[1])
+                p = self.cut_hole(p, c, self.case['hole_diameter']).center(-c[0], -c[1])
             for c in rect_points:
-                p = self.cut_rect(p, c, rect_size[0], rect_size[1]).center(-c[0],-c[1])
+                p = self.cut_rect(p, c, rect_size[0], rect_size[1]).center(-c[0], -c[1])
             p = self.center(p, -self.width/2 + self.kerf, -self.height/2 + self.kerf)  # move to top left of the plate
         if self.case['type'] == 'sandwich':
             p = self.center(p, -self.width/2 + self.kerf, -self.height/2 + self.kerf)  # move to top left of the plate
@@ -141,13 +142,13 @@ class Plate(object):
                 y_gap = (self.height - self.y_pad - 2*self.kerf)/(self.case['y_holes'] + 1)
                 p = p.center(self.x_pad/2, self.y_pad/2)
                 for i in range(self.case['x_holes'] + 1):
-                    p = p.center(x_gap,0).circle(radius).cutThruAll()
+                    p = p.center(x_gap, 0).circle(radius).cutThruAll()
                 for i in range(self.case['y_holes'] + 1):
-                    p = p.center(0,y_gap).circle(radius).cutThruAll()
+                    p = p.center(0, y_gap).circle(radius).cutThruAll()
                 for i in range(self.case['x_holes'] + 1):
-                    p = p.center(-x_gap,0).circle(radius).cutThruAll()
+                    p = p.center(-x_gap, 0).circle(radius).cutThruAll()
                 for i in range(self.case['y_holes'] + 1):
-                    p = p.center(0,-y_gap).circle(radius).cutThruAll()
+                    p = p.center(0, -y_gap).circle(radius).cutThruAll()
                 if result['has_layers']:
                     self.export(p, result, BOTTOM_LAYER, data_hash, config)
                 p = p.center(-self.x_pad/2, -self.y_pad/2)
@@ -190,9 +191,11 @@ class Plate(object):
             # closed layer
             p = p.center(-self.origin[0], -self.origin[1])
             points = [
-                (-self.width/2+self.x_pad+self.kerf*2,-self.height/2+self.y_pad+self.kerf*2), (self.width/2-self.x_pad-self.kerf*2,-self.height/2+self.y_pad+self.kerf*2),
-                (self.width/2-self.x_pad-self.kerf*2,self.height/2-self.y_pad-self.kerf*2), (-self.width/2+self.x_pad+self.kerf*2,self.height/2-self.y_pad-self.kerf*2),
-                (-self.width/2+self.x_pad+self.kerf*2,-self.height/2+self.y_pad+self.kerf*2)
+                (-self.width/2+self.x_pad+self.kerf*2, -self.height/2+self.y_pad+self.kerf*2),
+                (self.width/2-self.x_pad-self.kerf*2, -self.height/2+self.y_pad+self.kerf*2),
+                (self.width/2-self.x_pad-self.kerf*2, self.height/2-self.y_pad-self.kerf*2),
+                (-self.width/2+self.x_pad+self.kerf*2, self.height/2-self.y_pad-self.kerf*2),
+                (-self.width/2+self.x_pad+self.kerf*2, -self.height/2+self.y_pad+self.kerf*2)
             ]
             p = p.polyline(points).cutThruAll()
             self.export(p, result, CLOSED_LAYER, data_hash, config)
@@ -200,9 +203,11 @@ class Plate(object):
             # open layer
             p = p.center(0, -self.height/2+self.y_pad/2+self.kerf)
             points = [
-                (-self.usb_width/2+self.kerf,-self.y_pad/2-self.kerf), (self.usb_width/2-self.kerf,-self.y_pad/2-self.kerf),
-                (self.usb_width/2-self.kerf,self.y_pad/2+self.kerf), (-self.usb_width/2+self.kerf,self.y_pad/2+self.kerf),
-                (-self.usb_width/2+self.kerf,-self.y_pad/2-self.kerf)
+                (-self.usb_width/2+self.kerf, -self.y_pad/2-self.kerf),
+                (self.usb_width/2-self.kerf, -self.y_pad/2-self.kerf),
+                (self.usb_width/2-self.kerf, self.y_pad/2+self.kerf),
+                (-self.usb_width/2+self.kerf, self.y_pad/2+self.kerf),
+                (-self.usb_width/2+self.kerf, -self.y_pad/2-self.kerf)
             ]
             p = p.polyline(points).cutThruAll()
             self.export(p, result, OPEN_LAYER, data_hash, config)
@@ -289,7 +294,7 @@ class Plate(object):
         for p in points:
             px = math.cos(math.radians(r)) * (p[0]-a[0]) - math.sin(math.radians(r)) * (p[1]-a[1]) + a[0]
             py = math.sin(math.radians(r)) * (p[0]-a[0]) + math.cos(math.radians(r)) * (p[1]-a[1]) + a[1]
-            result.append((px,py))
+            result.append((px, py))
         return result
 
     # cut a hole with center 'c' and diameter 'd'
@@ -322,28 +327,40 @@ class Plate(object):
         points = []
         if t == 0:  # standard square switch
             points = [
-                (7-k+self.grow_x,-7+k-self.grow_y), (7-k+self.grow_x,7-k+self.grow_y),
-                (-7+k-self.grow_x,7-k+self.grow_y), (-7+k-self.grow_x,-7+k-self.grow_y),
-                (7-k+self.grow_x,-7+k-self.grow_y)
+                (7-k+self.grow_x, -7+k-self.grow_y),
+                (7-k+self.grow_x, 7-k+self.grow_y),
+                (-7+k-self.grow_x, 7-k+self.grow_y),
+                (-7+k-self.grow_x, -7+k-self.grow_y),
+                (7-k+self.grow_x, -7+k-self.grow_y)
             ]
         elif t == 1:  # mx and alps compatible switch, mx can open
             points = [
-                (7-k,-7+k), (7-k,-6.4+k), (7.8-k,-6.4+k), (7.8-k,6.4-k), (7-k,6.4-k), (7-k,7-k),
-                (-7+k,7-k), (-7+k,6.4-k), (-7.8+k,6.4-k), (-7.8+k,-6.4+k), (-7+k,-6.4+k), (-7+k,-7+k), (7-k,-7+k)
+                (7-k, -7+k), (7-k, -6.4+k), (7.8-k, -6.4+k), (7.8-k, 6.4-k),
+                (7-k, 6.4-k), (7-k, 7-k), (-7+k, 7-k), (-7+k, 6.4-k),
+                (-7.8+k, 6.4-k), (-7.8+k, -6.4+k), (-7+k, -6.4+k),
+                (-7+k, -7+k), (7-k, -7+k)
             ]
         elif t == 2:  # mx switch can open (side wings)
             points = [
-                (7-k,-7+k), (7-k,-6+k), (7.8-k,-6+k), (7.8-k,-2.9-k), (7-k,-2.9-k),
-                (7-k,2.9+k), (7.8-k,2.9+k), (7.8-k,6-k), (7-k,6-k), (7-k,7-k), (-7+k,7-k),
-                (-7+k,6-k), (-7.8+k,6-k), (-7.8+k,2.9+k), (-7+k,2.9+k),
-                (-7+k,-2.9-k), (-7.8+k,-2.9-k), (-7.8+k,-6+k), (-7+k,-6+k), (-7+k,-7+k), (7-k,-7+k)
+                (7-k, -7+k), (7-k, -6+k), (7.8-k, -6+k), (7.8-k, -2.9-k),
+                (7-k, -2.9-k), (7-k, 2.9+k), (7.8-k, 2.9+k), (7.8-k, 6-k),
+                (7-k, 6-k), (7-k, 7-k), (-7+k, 7-k), (-7+k, 6-k),
+                (-7.8+k, 6-k), (-7.8+k, 2.9+k), (-7+k, 2.9+k), (-7+k, -2.9-k),
+                (-7.8+k, -2.9-k), (-7.8+k, -6+k), (-7+k, -6+k), (-7+k, -7+k),
+                (7-k, -7+k)
             ]
         elif t == 3:  # rotatable mx switch can open both ways (side and top/bottom wings)
             points = [
-                (7-k,-7+k), (7-k,-6+k), (7.8-k,-6+k), (7.8-k,-2.9-k), (7-k,-2.9-k), (7-k,2.9+k), (7.8-k,2.9+k), (7.8-k,6-k), (7-k,6-k),
-                (7-k,7-k), (6-k,7-k), (6-k,7.8-k), (2.9+k,7.8-k), (2.9+k,7-k), (-2.9-k,7-k), (-2.9-k,7.8-k), (-6+k,7.8-k), (-6+k,7-k),
-                (-7+k,7-k), (-7+k,6-k), (-7.8+k,6-k), (-7.8+k,2.9+k), (-7+k,2.9+k), (-7+k,-2.9-k), (-7.8+k,-2.9-k), (-7.8+k,-6+k), (-7+k,-6+k),
-                (-7+k,-7+k), (-6+k,-7+k), (-6+k,-7.8+k), (-2.9-k,-7.8+k), (-2.9-k,-7+k), (2.9+k,-7+k), (2.9+k,-7.8+k), (6-k,-7.8+k), (6-k,-7+k), (7-k,-7+k)
+                (7-k, -7+k), (7-k, -6+k), (7.8-k, -6+k), (7.8-k, -2.9-k),
+                (7-k, -2.9-k), (7-k, 2.9+k), (7.8-k, 2.9+k), (7.8-k, 6-k),
+                (7-k, 6-k), (7-k, 7-k), (6-k, 7-k), (6-k, 7.8-k),
+                (2.9+k, 7.8-k), (2.9+k, 7-k), (-2.9-k, 7-k), (-2.9-k, 7.8-k),
+                (-6+k, 7.8-k), (-6+k, 7-k), (-7+k, 7-k), (-7+k, 6-k),
+                (-7.8+k, 6-k), (-7.8+k, 2.9+k), (-7+k, 2.9+k), (-7+k, -2.9-k),
+                (-7.8+k, -2.9-k), (-7.8+k, -6+k), (-7+k, -6+k), (-7+k, -7+k),
+                (-6+k, -7+k), (-6+k, -7.8+k), (-2.9-k, -7.8+k), (-2.9-k, -7+k),
+                (2.9+k, -7+k), (2.9+k, -7.8+k), (6-k, -7.8+k), (6-k, -7+k),
+                (7-k, -7+k)
             ]
         elif t == 4:  # alps compatible switch, not MX compatible
             points = [
@@ -362,10 +379,22 @@ class Plate(object):
             if s == 0:
                 # modified mx cherry spec 2u stabilizer to support costar
                 points = [
-                    (7-k,-7+k), (7-k,-4.73+k), (8.575+k,-4.73+k), (8.575+k,-5.53+k), (10.3+k,-5.53+k), (10.3+k,-6.45+k), (13.6-k,-6.45+k), (13.6-k,-5.53+k), (15.225-k,-5.53+k), (15.225-k,-2.3+k), (16.1-k,-2.3+k),
-                    (16.1-k,0.5-k), (15.225-k,0.5-k), (15.225-k,6.77-k), (13.6-k,6.77-k), (13.6-k,7.75-k), (10.3+k,7.75-k), (10.3+k,6.77-k), (8.575+k,6.77-k), (8.575+k,5.97-k), (7-k,5.97-k), (7-k,7-k),
-                    (-7+k,7-k), (-7+k,5.97-k), (-8.575-k,5.97-k), (-8.575-k,6.77-k), (-10.3-k,6.77-k), (-10.3-k,7.75-k), (-13.6+k,7.75-k), (-13.6+k,6.77-k), (-15.225+k,6.77-k), (-15.225+k,0.5-k), (-16.1+k,0.5-k),
-                    (-16.1+k,-2.3+k), (-15.225+k,-2.3+k), (-15.225+k,-5.53+k), (-13.6+k,-5.53+k), (-13.6+k,-6.45+k), (-10.3-k,-6.45+k), (-10.3-k,-5.53+k), (-8.575-k,-5.53+k), (-8.575-k,-4.73+k), (-7+k,-4.73+k), (-7+k,-7+k), (7-k,-7+k)
+                    (7-k, -7+k), (7-k, -4.73+k), (8.575+k, -4.73+k),
+                    (8.575+k, -5.53+k), (10.3+k, -5.53+k), (10.3+k, -6.45+k),
+                    (13.6-k, -6.45+k), (13.6-k, -5.53+k), (15.225-k, -5.53+k),
+                    (15.225-k, -2.3+k), (16.1-k, -2.3+k), (16.1-k, 0.5-k),
+                    (15.225-k, 0.5-k), (15.225-k, 6.77-k), (13.6-k, 6.77-k),
+                    (13.6-k, 7.75-k), (10.3+k, 7.75-k), (10.3+k, 6.77-k),
+                    (8.575+k, 6.77-k), (8.575+k, 5.97-k), (7-k, 5.97-k),
+                    (7-k, 7-k), (-7+k, 7-k), (-7+k, 5.97-k),
+                    (-8.575-k, 5.97-k), (-8.575-k, 6.77-k), (-10.3-k, 6.77-k),
+                    (-10.3-k, 7.75-k), (-13.6+k, 7.75-k), (-13.6+k, 6.77-k),
+                    (-15.225+k, 6.77-k), (-15.225+k, 0.5-k), (-16.1+k, 0.5-k),
+                    (-16.1+k, -2.3+k), (-15.225+k, -2.3+k),
+                    (-15.225+k, -5.53+k), (-13.6+k, -5.53+k),
+                    (-13.6+k, -6.45+k), (-10.3-k, -6.45+k), (-10.3-k, -5.53+k),
+                    (-8.575-k, -5.53+k), (-8.575-k, -4.73+k), (-7+k, -4.73+k),
+                    (-7+k, -7+k), (7-k, -7+k)
                 ]
                 if rotate:
                     points = self.rotate_points(points, 90, (0, 0))
@@ -375,10 +404,20 @@ class Plate(object):
             if s == 1:
                 # cherry spec 2u stabilizer
                 points = [
-                    (7-k,-7+k), (7-k,-4.73+k), (8.575+k,-4.73+k), (8.575+k,-5.53+k), (15.225-k,-5.53+k), (15.225-k,-2.3+k), (16.1-k,-2.3+k),
-                    (16.1-k,0.5-k), (15.225-k,0.5-k), (15.225-k,6.77-k), (13.6-k,6.77-k), (13.6-k,7.97-k), (10.3+k,7.97-k), (10.3+k,6.77-k), (8.575+k,6.77-k), (8.575+k,5.97-k), (7-k,5.97-k), (7-k,7-k),
-                    (-7+k,7-k), (-7+k,5.97-k), (-8.575-k,5.97-k), (-8.575-k,6.77-k), (-10.3-k,6.77-k), (-10.3-k,7.97-k), (-13.6+k,7.97-k), (-13.6+k,6.77-k), (-15.225+k,6.77-k), (-15.225+k,0.5-k), (-16.1+k,0.5-k),
-                    (-16.1+k,-2.3+k), (-15.225+k,-2.3+k), (-15.225+k,-5.53+k), (-8.575-k,-5.53+k), (-8.575-k,-4.73+k), (-7+k,-4.73+k), (-7+k,-7+k), (7-k,-7+k)
+                    (7-k, -7+k), (7-k, -4.73+k), (8.575+k, -4.73+k),
+                    (8.575+k, -5.53+k), (15.225-k, -5.53+k),
+                    (15.225-k, -2.3+k), (16.1-k, -2.3+k), (16.1-k, 0.5-k),
+                    (15.225-k, 0.5-k), (15.225-k, 6.77-k), (13.6-k, 6.77-k),
+                    (13.6-k, 7.97-k), (10.3+k, 7.97-k), (10.3+k, 6.77-k),
+                    (8.575+k, 6.77-k), (8.575+k, 5.97-k), (7-k, 5.97-k),
+                    (7-k, 7-k), (-7+k, 7-k), (-7+k, 5.97-k),
+                    (-8.575-k, 5.97-k), (-8.575-k, 6.77-k), (-10.3-k, 6.77-k),
+                    (-10.3-k, 7.97-k), (-13.6+k, 7.97-k), (-13.6+k, 6.77-k),
+                    (-15.225+k, 6.77-k), (-15.225+k, 0.5-k), (-16.1+k, 0.5-k),
+                    (-16.1+k, -2.3+k), (-15.225+k, -2.3+k),
+                    (-15.225+k, -5.53+k), (-8.575-k, -5.53+k),
+                    (-8.575-k, -4.73+k), (-7+k, -4.73+k), (-7+k, -7+k),
+                    (7-k, -7+k)
                 ]
                 if rotate:
                     points = self.rotate_points(points, 90, (0, 0))
@@ -387,8 +426,12 @@ class Plate(object):
                 p = p.polyline(points).cutThruAll()
             if s == 2:
                 # costar stabilizers only
-                points_l = [(-10.3-k,-6.45+k), (-13.6+k,-6.45+k), (-13.6+k,7.75-k), (-10.3-k,7.75-k), (-10.3-k,-6.45+k)]
-                points_r = [(10.3+k,-6.45+k), (13.6-k,-6.45+k), (13.6-k,7.75-k), (10.3+k,7.75-k), (10.3+k,-6.45+k)]
+                points_l = [(-10.3-k, -6.45+k), (-13.6+k, -6.45+k),
+                            (-13.6+k, 7.75-k), (-10.3-k, 7.75-k),
+                            (-10.3-k, -6.45+k)]
+                points_r = [(10.3+k, -6.45+k), (13.6-k, -6.45+k),
+                            (13.6-k, 7.75-k), (10.3+k, 7.75-k),
+                            (10.3+k, -6.45+k)]
                 if rotate:
                     points_l = self.rotate_points(points_l, 90, (0, 0))
                     points_r = self.rotate_points(points_r, 90, (0, 0))
@@ -411,10 +454,25 @@ class Plate(object):
             if s == 0:
                 # modified mx cherry spec stabilizer to support costar
                 points = [
-                    (7-k,-7+k), (7-k,-2.3+k), (x-3.325+k,-2.3+k), (x-3.325+k,-5.53+k), (x-1.65+k,-5.53+k), (x-1.65+k,-6.45+k), (x+1.65-k,-6.45+k), (x+1.65-k,-5.53+k), (x+3.325-k,-5.53+k), (x+3.325-k,-2.3+k), (x+4.2-k,-2.3+k),
-                    (x+4.2-k,0.5-k), (x+3.325-k,0.5-k), (x+3.325-k,6.77-k), (x+1.65-k,6.77-k), (x+1.65-k,7.75-k), (x-1.65+k,7.75-k), (x-1.65+k,6.77-k), (x-3.325+k,6.77-k), (x-3.325+k,2.3-k), (7-k,2.3-k), (7-k,7-k),
-                    (-7+k,7-k), (-7+k,2.3-k), (-x+3.325-k,2.3-k), (-x+3.325-k,6.77-k), (-x+1.65-k,6.77-k), (-x+1.65-k,7.75-k), (-x-1.65+k,7.75-k), (-x-1.65+k,6.77-k), (-x-3.325+k,6.77-k), (-x-3.325+k,0.5-k), (-x-4.2+k,0.5-k),
-                    (-x-4.2+k,-2.3+k), (-x-3.325+k,-2.3+k), (-x-3.325+k,-5.53+k), (-x-1.65+k,-5.53+k), (-x-1.65+k,-6.45+k), (-x+1.65-k,-6.45+k), (-x+1.65-k,-5.53+k), (-x+3.325-k,-5.53+k), (-x+3.325-k,-2.3+k), (-7+k,-2.3+k), (-7+k,-7+k), (7-k,-7+k)
+                    (7-k, -7+k), (7-k, -2.3+k), (x-3.325+k, -2.3+k),
+                    (x-3.325+k, -5.53+k), (x-1.65+k, -5.53+k),
+                    (x-1.65+k, -6.45+k), (x+1.65-k, -6.45+k),
+                    (x+1.65-k, -5.53+k), (x+3.325-k, -5.53+k),
+                    (x+3.325-k, -2.3+k), (x+4.2-k, -2.3+k), (x+4.2-k, 0.5-k),
+                    (x+3.325-k, 0.5-k), (x+3.325-k, 6.77-k),
+                    (x+1.65-k, 6.77-k), (x+1.65-k, 7.75-k), (x-1.65+k, 7.75-k),
+                    (x-1.65+k, 6.77-k), (x-3.325+k, 6.77-k),
+                    (x-3.325+k, 2.3-k), (7-k, 2.3-k), (7-k, 7-k), (-7+k, 7-k),
+                    (-7+k, 2.3-k), (-x+3.325-k, 2.3-k), (-x+3.325-k, 6.77-k),
+                    (-x+1.65-k, 6.77-k), (-x+1.65-k, 7.75-k),
+                    (-x-1.65+k, 7.75-k), (-x-1.65+k, 6.77-k),
+                    (-x-3.325+k, 6.77-k), (-x-3.325+k, 0.5-k),
+                    (-x-4.2+k, 0.5-k), (-x-4.2+k, -2.3+k),
+                    (-x-3.325+k, -2.3+k), (-x-3.325+k, -5.53+k),
+                    (-x-1.65+k, -5.53+k), (-x-1.65+k, -6.45+k),
+                    (-x+1.65-k, -6.45+k), (-x+1.65-k, -5.53+k),
+                    (-x+3.325-k, -5.53+k), (-x+3.325-k, -2.3+k),
+                    (-7+k, -2.3+k), (-7+k, -7+k), (7-k, -7+k)
                 ]
                 if rotate:
                     points = self.rotate_points(points, 90, (0, 0))
@@ -424,10 +482,21 @@ class Plate(object):
             if s == 1:
                 # cherry spec spacebar stabilizer
                 points = [
-                    (7-k,-7+k), (7-k,-2.3+k), (x-3.325+k,-2.3+k), (x-3.325+k,-5.53+k), (x+3.325-k,-5.53+k), (x+3.325-k,-2.3+k), (x+4.2-k,-2.3+k),
-                    (x+4.2-k,0.5-k), (x+3.325-k,0.5-k), (x+3.325-k,6.77-k), (x+1.65-k,6.77-k), (x+1.65-k,7.97-k), (x-1.65+k,7.97-k), (x-1.65+k,6.77-k), (x-3.325+k,6.77-k), (x-3.325+k,2.3-k), (7-k,2.3-k), (7-k,7-k),
-                    (-7+k,7-k), (-7+k,2.3-k), (-x+3.325-k,2.3-k), (-x+3.325-k,6.77-k), (-x+1.65-k,6.77-k), (-x+1.65-k,7.97-k), (-x-1.65+k,7.97-k), (-x-1.65+k,6.77-k), (-x-3.325+k,6.77-k), (-x-3.325+k,0.5-k), (-x-4.2+k,0.5-k),
-                    (-x-4.2+k,-2.3+k), (-x-3.325+k,-2.3+k), (-x-3.325+k,-5.53+k), (-x+3.325-k,-5.53+k), (-x+3.325-k,-2.3+k), (-7+k,-2.3+k), (-7+k,-7+k), (7-k,-7+k)
+                    (7-k, -7+k), (7-k, -2.3+k), (x-3.325+k, -2.3+k),
+                    (x-3.325+k, -5.53+k), (x+3.325-k, -5.53+k),
+                    (x+3.325-k, -2.3+k), (x+4.2-k, -2.3+k), (x+4.2-k, 0.5-k),
+                    (x+3.325-k, 0.5-k), (x+3.325-k, 6.77-k),
+                    (x+1.65-k, 6.77-k), (x+1.65-k, 7.97-k), (x-1.65+k, 7.97-k),
+                    (x-1.65+k, 6.77-k), (x-3.325+k, 6.77-k),
+                    (x-3.325+k, 2.3-k), (7-k, 2.3-k), (7-k, 7-k), (-7+k, 7-k),
+                    (-7+k, 2.3-k), (-x+3.325-k, 2.3-k), (-x+3.325-k, 6.77-k),
+                    (-x+1.65-k, 6.77-k), (-x+1.65-k, 7.97-k),
+                    (-x-1.65+k, 7.97-k), (-x-1.65+k, 6.77-k),
+                    (-x-3.325+k, 6.77-k), (-x-3.325+k, 0.5-k),
+                    (-x-4.2+k, 0.5-k), (-x-4.2+k, -2.3+k),
+                    (-x-3.325+k, -2.3+k), (-x-3.325+k, -5.53+k),
+                    (-x+3.325-k, -5.53+k), (-x+3.325-k, -2.3+k),
+                    (-7+k, -2.3+k), (-7+k, -7+k), (7-k, -7+k)
                 ]
                 if rotate:
                     points = self.rotate_points(points, 90, (0, 0))
@@ -436,8 +505,12 @@ class Plate(object):
                 p = p.polyline(points).cutThruAll()
             if s == 2:
                 # costar stabilizers only
-                points_l = [(-x+1.65-k,-6.45+k), (-x-1.65+k,-6.45+k), (-x-1.65+k,7.75-k), (-x+1.65-k,7.75-k), (-x+1.65-k,-6.45+k)]
-                points_r = [(x-1.65+k,-6.45+k), (x+1.65-k,-6.45+k), (x+1.65-k,7.75-k), (x-1.65+k,7.75-k), (x-1.65+k,-6.45+k)]
+                points_l = [(-x+1.65-k, -6.45+k), (-x-1.65+k, -6.45+k),
+                            (-x-1.65+k, 7.75-k), (-x+1.65-k, 7.75-k),
+                            (-x+1.65-k, -6.45+k)]
+                points_r = [(x-1.65+k, -6.45+k), (x+1.65-k, -6.45+k),
+                            (x+1.65-k, 7.75-k), (x-1.65+k, 7.75-k),
+                            (x-1.65+k, -6.45+k)]
                 if rotate:
                     points_l = self.rotate_points(points_l, 90, (0, 0))
                     points_r = self.rotate_points(points_r, 90, (0, 0))
