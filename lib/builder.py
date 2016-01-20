@@ -149,8 +149,10 @@ class Plate(object):
                     'x_holes' in self.case and 'y_holes' in self.case:
                 self.layout_sandwich_holes()
                 radius = self.case['hole_diameter']/2 - self.kerf
-                x_gap = (self.width - self.x_pad - 2*self.kerf)/(self.case['x_holes'] + 1)
-                y_gap = (self.height - self.y_pad - 2*self.kerf)/(self.case['y_holes'] + 1)
+                x_gap = (self.width - self.x_pad -
+                         2*self.kerf)/(self.case['x_holes'] + 1)
+                y_gap = (self.height - self.y_pad -
+                         2*self.kerf)/(self.case['y_holes'] + 1)
                 p = p.center(self.x_pad/2, self.y_pad/2)
                 for i in range(self.case['x_holes'] + 1):
                     p = p.center(x_gap, 0).circle(radius).cutThruAll()
@@ -237,7 +239,8 @@ class Plate(object):
     def parse_layout(self, layout):
         layout_width = 0
         layout_height = 0
-        key_desc = False  # track if current is not a key and only describes the next key
+        # track if current is not a key and only describes the next key
+        key_desc = False
         for row in layout:
             if isinstance(row, list):  # only handle arrays of keys
                 row_width = 0
@@ -296,7 +299,8 @@ class Plate(object):
     # since the sandwich plate has a dynamic number of holes, determine where
     # the specified holes should be placed
     def layout_sandwich_holes(self):
-        if 'holes' in self.case and self.case['holes'] >= 4 and 'x_holes' in self.case and 'y_holes' in self.case:
+        if 'holes' in self.case and self.case['holes'] >= 4 and \
+                'x_holes' in self.case and 'y_holes' in self.case:
             holes = int(self.case['holes'])
             if holes % 2 == 0 and holes >= 4:
                 # holes needs to be even and the first 4 are put in the corners
@@ -329,8 +333,10 @@ class Plate(object):
     def rotate_points(self, points, r, a):
         result = []
         for p in points:
-            px = math.cos(math.radians(r)) * (p[0]-a[0]) - math.sin(math.radians(r)) * (p[1]-a[1]) + a[0]
-            py = math.sin(math.radians(r)) * (p[0]-a[0]) + math.cos(math.radians(r)) * (p[1]-a[1]) + a[1]
+            px = math.cos(math.radians(r)) * \
+                (p[0]-a[0]) - math.sin(math.radians(r)) * (p[1]-a[1]) + a[0]
+            py = math.sin(math.radians(r)) * \
+                (p[0]-a[0]) + math.cos(math.radians(r)) * (p[1]-a[1]) + a[1]
             result.append((px, py))
         return result
 
@@ -351,8 +357,10 @@ class Plate(object):
 
         w = key['w'] if 'w' in key else 1
         h = key['h'] if 'h' in key else 1
-        t = key['_t'] if '_t' in key and key['_t'] in range(4) else self.switch_type
-        s = key['_s'] if '_s' in key and key['_s'] in range(2) else self.stab_type
+        t = key['_t'] if '_t' in key and key['_t'] in range(4) \
+            else self.switch_type
+        s = key['_s'] if '_s' in key and key['_s'] in range(2) \
+            else self.stab_type
         k = key['_k']/2 if '_k' in key else self.kerf
         r = key['_r'] if '_r' in key else None
         rs = key['_rs'] if '_rs' in key else None
@@ -489,7 +497,9 @@ class Plate(object):
             x = 11.95  # default to a 2unit stabilizer if not found...
             # use the length of the key to determine if we have a known
             # stabilizer config for that key
-            stab_size = '%s' % (str(l).replace('.', '').ljust(3, '0') if l < 10 else str(l).replace('.', '').ljust(4, '0'))
+            stab_size = '%s' % (str(l).replace('.', '').ljust(3, '0')
+                                if l < 10
+                                else str(l).replace('.', '').ljust(4, '0'))
             if stab_size in self.stabs:
                 x = self.stabs[stab_size]
             if s == 0:
