@@ -134,10 +134,14 @@ class Plate(object):
             rect_points = [(140.75, 9.2), (-140.75, 9.2)]  # edge slots
             rect_size = (3.5, 5)  # edge slot cutout to edge
             for c in hole_points:
-                p = self.cut_hole(p, c, self.case['hole_diameter']).center(-c[0], -c[1])
+                p = self.cut_hole(p, c,
+                                  self.case['hole_diameter']).center(-c[0],
+                                                                     -c[1])
             for c in rect_points:
-                p = self.cut_rect(p, c, rect_size[0], rect_size[1]).center(-c[0], -c[1])
-            p = self.center(p, -self.width/2 + self.kerf, -self.height/2 + self.kerf)  # move to top left of the plate
+                p = self.cut_rect(p, c, rect_size[0],
+                                  rect_size[1]).center(-c[0], -c[1])
+            p = self.center(p, -self.width/2 + self.kerf, -self.height/2 +
+                            self.kerf)  # move to top left of the plate
         if self.case['type'] == 'sandwich':
             p = self.center(p, -self.width/2 + self.kerf, -self.height/2 +
                             self.kerf)  # move to top left of the plate
@@ -175,7 +179,8 @@ class Plate(object):
                     p = self.center(p, key['w']*self.u1/2, self.u1/2)
                     x += self.x_pad
                     y += self.y_pad
-                    # set x_off negative since the 'cut_switch' will append 'x' and we need to account inital spacing
+                    # set x_off negative since the 'cut_switch' will append 'x'
+                    # and we need to account inital spacing
                     self.x_off = -(x - (self.u1/2 + key['w']*self.u1/2) - kx)
                 elif k == 0:  # handle changing rows
                     p = self.center(p, -self.x_off, self.u1)  # move to the next row
@@ -198,11 +203,16 @@ class Plate(object):
             # closed layer
             p = p.center(-self.origin[0], -self.origin[1])
             points = [
-                (-self.width/2+self.x_pad+self.kerf*2, -self.height/2+self.y_pad+self.kerf*2),
-                (self.width/2-self.x_pad-self.kerf*2, -self.height/2+self.y_pad+self.kerf*2),
-                (self.width/2-self.x_pad-self.kerf*2, self.height/2-self.y_pad-self.kerf*2),
-                (-self.width/2+self.x_pad+self.kerf*2, self.height/2-self.y_pad-self.kerf*2),
-                (-self.width/2+self.x_pad+self.kerf*2, -self.height/2+self.y_pad+self.kerf*2)
+                (-self.width/2+self.x_pad+self.kerf*2,
+                 -self.height/2+self.y_pad+self.kerf*2),
+                (self.width/2-self.x_pad-self.kerf*2,
+                 -self.height/2+self.y_pad+self.kerf*2),
+                (self.width/2-self.x_pad-self.kerf*2,
+                 self.height/2-self.y_pad-self.kerf*2),
+                (-self.width/2+self.x_pad+self.kerf*2,
+                 self.height/2-self.y_pad-self.kerf*2),
+                (-self.width/2+self.x_pad+self.kerf*2,
+                 -self.height/2+self.y_pad+self.kerf*2)
             ]
             p = p.polyline(points).cutThruAll()
             self.export(p, result, CLOSED_LAYER, data_hash, config)
@@ -454,7 +464,8 @@ class Plate(object):
             if rotate:
                 l = h
             x = 11.95  # default to a 2unit stabilizer if not found...
-            # use the length of the key to determine if we have a known stabilizer config for that key
+            # use the length of the key to determine if we have a known
+            # stabilizer config for that key
             stab_size = '%s' % (str(l).replace('.', '').ljust(3, '0') if l < 10 else str(l).replace('.', '').ljust(4, '0'))
             if stab_size in self.stabs:
                 x = self.stabs[stab_size]
@@ -529,7 +540,8 @@ class Plate(object):
         self.x_off += c[0]
         return p
 
-    # sets the center and also records the relative distance it moved in relation to 'origin'
+    # sets the center and also records the relative distance it moved in
+    # relation to 'origin'
     def center(self, p, x, y):
         _x = self.origin[0]
         _y = self.origin[1]
@@ -563,7 +575,8 @@ class Plate(object):
         pwd_len = len(config['app']['pwd'])  # the absolute part of the working directory (aka - outside the web space)
         result['exports'][label] = []
         if 'js' in result['formats']:
-            with open("%s/%s_%s.js" % (config['app']['export'], label, data_hash), "w") as f:
+            with open("%s/%s_%s.js" % (config['app']['export'], label,
+                                       data_hash), "w") as f:
                 cadquery.exporters.exportShape(p, 'TJS', f)
                 result['exports'][label].append({'name': 'js', 'url': '%s/%s_%s.js' % (config['app']['export'][pwd_len:], label, data_hash)})
                 log.info("Exported 'JS'")
@@ -611,7 +624,8 @@ def build(data_hash, data, config):
             if 'mount-holes-size' in data:
                 p.set_poker_holes(float(data['mount-holes-size']))
         if data['case-type'] == 'sandwich':
-            result['plates'] = result['plates'] + [OPEN_LAYER, CLOSED_LAYER, BOTTOM_LAYER]
+            result['plates'] = result['plates'] + [OPEN_LAYER, CLOSED_LAYER,
+                                                   BOTTOM_LAYER]
             result['has_layers'] = True
             if 'mount-holes-num' in data and 'mount-holes-size' in data:
                 p.set_sandwich_holes(int(data['mount-holes-num']),
@@ -632,6 +646,7 @@ def build(data_hash, data, config):
         p.set_kerf(float(data['kerf']))
     if 'export_svg' in data and not data['export_svg']:
         result['formats'].remove('svg')
-    result = p.draw(result, data['layout'], data_hash, config)  # draw the plate
+    # draw the plate
+    result = p.draw(result, data['layout'], data_hash, config)
     log.info("Finished drawing: %s" % (data_hash))
     return result  # return the metadata result to the webserver
