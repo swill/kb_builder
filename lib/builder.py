@@ -175,7 +175,8 @@ class Plate(object):
                     kx = x
                 if 'y' in key and k == 0:
                     y = key['y']*self.u1
-                if r == 0 and k == 0:  # handle placement of the first key in first row
+                if r == 0 and k == 0:
+                    # handle placement of the first key in first row
                     p = self.center(p, key['w']*self.u1/2, self.u1/2)
                     x += self.x_pad
                     y += self.y_pad
@@ -183,7 +184,8 @@ class Plate(object):
                     # and we need to account inital spacing
                     self.x_off = -(x - (self.u1/2 + key['w']*self.u1/2) - kx)
                 elif k == 0:  # handle changing rows
-                    p = self.center(p, -self.x_off, self.u1)  # move to the next row
+                    # move to the next row
+                    p = self.center(p, -self.x_off, self.u1)
                     self.x_off = 0  # reset back to the left side of the plate
                     x += self.u1/2 + key['w']*self.u1/2
                 else:  # handle all other keys
@@ -230,7 +232,8 @@ class Plate(object):
             self.export(p, result, OPEN_LAYER, data_hash, config)
         return result
 
-    # parse the supplied layout to determine size and populate the properties of each 'key'
+    # parse the supplied layout to determine size and populate the properties
+    # of each 'key'
     def parse_layout(self, layout):
         layout_width = 0
         layout_height = 0
@@ -250,8 +253,12 @@ class Plate(object):
                             key['h'] = 1
                         row_layout.append(key)
                         key_desc = True
-                    else:  # is just a standard key (we know its a single unit key)
-                        if not key_desc:  # only handle if it was not already handled as a key_desc
+                    else:
+                        # is just a standard key (we know its a single unit
+                        # key)
+                        if not key_desc:
+                            # only handle if it was not already handled as a
+                            # key_desc
                             key['w'] = 1
                             key['h'] = 1
                             row_layout.append(key)
@@ -259,7 +266,8 @@ class Plate(object):
                     if 'w' in key:
                         row_width += key['w']
                     if 'x' in key:
-                        row_width += key['x']  # offsets count towards total row width
+                        # offsets count towards total row width
+                        row_width += key['x']
                     if 'y' in key:
                         row_height = key['y']
                 self.layout.append(row_layout)
@@ -268,32 +276,44 @@ class Plate(object):
                 layout_height += self.u1 + row_height*self.u1
             # hidden global features
             if isinstance(row, dict):
-                if 'grow_y' in row and (type(row['grow_y']) == int or type(row['grow_y']) == float):
+                if 'grow_y' in row and (type(row['grow_y']) == int or
+                                        type(row['grow_y']) == float):
                     self.grow_y = row['grow_y']/2
-                if 'grow_x' in row and (type(row['grow_x']) == int or type(row['grow_x']) == float):
+                if 'grow_x' in row and (type(row['grow_x']) == int or
+                                        type(row['grow_x']) == float):
                     self.grow_x = row['grow_x']/2
         self.width = layout_width*self.u1 + 2*self.x_pad + 2*self.kerf
         self.height = layout_height + 2*self.y_pad + 2*self.kerf
 
     # initialize the plate object 'p' and get it ready to work with
     def init_plate(self):
-        p = cadquery.Workplane("front").box(self.width, self.height, self.thickness)
+        p = cadquery.Workplane("front").box(self.width, self.height,
+                                            self.thickness)
         if self.fillet > 0:
             p = p.edges("|Z").fillet(self.fillet)
         return p.faces("<Z").workplane()
 
-    # since the sandwich plate has a dynamic number of holes, determine where the specified holes should be placed
+    # since the sandwich plate has a dynamic number of holes, determine where
+    # the specified holes should be placed
     def layout_sandwich_holes(self):
         if 'holes' in self.case and self.case['holes'] >= 4 and 'x_holes' in self.case and 'y_holes' in self.case:
             holes = int(self.case['holes'])
-            if holes % 2 == 0 and holes >= 4:  # holes needs to be even and the first 4 are put in the corners
+            if holes % 2 == 0 and holes >= 4:
+                # holes needs to be even and the first 4 are put in the corners
                 x = self.width - self.x_pad - self.kerf  # x length to split
                 y = self.height - self.y_pad - self.kerf  # y length to split
-                _x = 0  # number of holes on each x side (not counting the corner holes)
-                _y = 0  # number of holes on each y side (not counting the corner holes)
-                free = (holes-4)/2  # number of free holes to be placed on either x or y sides
-                for f in range(free):  # loop through the available holes and place them
-                    if x/(_x+1) == y/(_y+1):  # if equal, add the hole to the longer side
+                # number of holes on each x side (not counting the corner
+                # holes)
+                _x = 0
+                # number of holes on each y side (not counting the corner
+                # holes)
+                _y = 0
+                # number of free holes to be placed on either x or y sides
+                free = (holes-4)/2
+                for f in range(free):
+                    # loop through the available holes and place them
+                    if x/(_x+1) == y/(_y+1):
+                        # if equal, add the hole to the longer side
                         if x >= y:
                             _x += 1
                         else:
@@ -366,7 +386,9 @@ class Plate(object):
                 (-7.8+k, -2.9-k), (-7.8+k, -6+k), (-7+k, -6+k), (-7+k, -7+k),
                 (7-k, -7+k)
             ]
-        elif t == 3:  # rotatable mx switch can open both ways (side and top/bottom wings)
+        elif t == 3:
+            # rotatable mx switch can open both ways (side and top/bottom
+            # wings)
             points = [
                 (7-k, -7+k), (7-k, -6+k), (7.8-k, -6+k), (7.8-k, -2.9-k),
                 (7-k, -2.9-k), (7-k, 2.9+k), (7.8-k, 2.9+k), (7.8-k, 6-k),
@@ -392,7 +414,8 @@ class Plate(object):
         p = self.center(p, c[0], c[1]).polyline(points).cutThruAll()
 
         # cut 2 unit stabilizer cutout
-        if (w >= 2 and w < 3) or (rotate and h >= 2 and h < 3):  # 2 unit stabilizer
+        #   2 unit stabilizer
+        if (w >= 2 and w < 3) or (rotate and h >= 2 and h < 3):
             if s == 0:
                 # modified mx cherry spec 2u stabilizer to support costar
                 points = [
@@ -563,7 +586,8 @@ class Plate(object):
         settings['kerf'] = self.kerf
         # XXX line colour?
 
-        return json.dumps(settings, sort_keys=True, indent=4, separators=(',', ': '))
+        return json.dumps(settings, sort_keys=True, indent=4,
+                          separators=(',', ': '))
 
     def export(self, p, result, label, data_hash, config):
         # export the plate to different file formats
@@ -572,38 +596,60 @@ class Plate(object):
         Part.show(p.val().wrapped)
         doc = FreeCAD.ActiveDocument
         # export the drawing into different formats
-        pwd_len = len(config['app']['pwd'])  # the absolute part of the working directory (aka - outside the web space)
+        #   the absolute part of the working directory (aka - outside the web
+        #   space)
+        pwd_len = len(config['app']['pwd'])
         result['exports'][label] = []
         if 'js' in result['formats']:
             with open("%s/%s_%s.js" % (config['app']['export'], label,
                                        data_hash), "w") as f:
                 cadquery.exporters.exportShape(p, 'TJS', f)
-                result['exports'][label].append({'name': 'js', 'url': '%s/%s_%s.js' % (config['app']['export'][pwd_len:], label, data_hash)})
+                result['exports'][label].append(
+                    {'name': 'js', 'url': '%s/%s_%s.js' %
+                        (config['app']['export'][pwd_len:], label, data_hash)})
                 log.info("Exported 'JS'")
         if 'brp' in result['formats']:
-            Part.export(doc.Objects, "%s/%s_%s.brp" % (config['app']['export'], label, data_hash))
-            result['exports'][label].append({'name': 'brp', 'url': '%s/%s_%s.brp' % (config['app']['export'][pwd_len:], label, data_hash)})
+            Part.export(doc.Objects, "%s/%s_%s.brp" %
+                        (config['app']['export'], label, data_hash))
+            result['exports'][label].append(
+                {'name': 'brp', 'url': '%s/%s_%s.brp' %
+                    (config['app']['export'][pwd_len:], label, data_hash)})
             log.info("Exported 'BRP'")
         if 'stp' in result['formats']:
-            Part.export(doc.Objects, "%s/%s_%s.stp" % (config['app']['export'], label, data_hash))
-            result['exports'][label].append({'name': 'stp', 'url': '%s/%s_%s.stp' % (config['app']['export'][pwd_len:], label, data_hash)})
+            Part.export(doc.Objects, "%s/%s_%s.stp" %
+                        (config['app']['export'], label, data_hash))
+            result['exports'][label].append(
+                {'name': 'stp', 'url': '%s/%s_%s.stp' %
+                    (config['app']['export'][pwd_len:], label, data_hash)})
             log.info("Exported 'STP'")
         if 'stl' in result['formats']:
-            Mesh.export(doc.Objects, "%s/%s_%s.stl" % (config['app']['export'], label, data_hash))
-            result['exports'][label].append({'name': 'stl', 'url': '%s/%s_%s.stl' % (config['app']['export'][pwd_len:], label, data_hash)})
+            Mesh.export(doc.Objects, "%s/%s_%s.stl" %
+                        (config['app']['export'], label, data_hash))
+            result['exports'][label].append(
+                {'name': 'stl', 'url': '%s/%s_%s.stl' %
+                    (config['app']['export'][pwd_len:], label, data_hash)})
             log.info("Exported 'STL'")
         if 'dxf' in result['formats']:
-            importDXF.export(doc.Objects, "%s/%s_%s.dxf" % (config['app']['export'], label, data_hash))
-            result['exports'][label].append({'name': 'dxf', 'url': '%s/%s_%s.dxf' % (config['app']['export'][pwd_len:], label, data_hash)})
+            importDXF.export(doc.Objects, "%s/%s_%s.dxf" %
+                             (config['app']['export'], label, data_hash))
+            result['exports'][label].append(
+                {'name': 'dxf', 'url': '%s/%s_%s.dxf' %
+                    (config['app']['export'][pwd_len:], label, data_hash)})
             log.info("Exported 'DXF'")
         if 'svg' in result['formats']:
-            importSVG.export(doc.Objects, "%s/%s_%s.svg" % (config['app']['export'], label, data_hash))
-            result['exports'][label].append({'name': 'svg', 'url': '%s/%s_%s.svg' % (config['app']['export'][pwd_len:], label, data_hash)})
+            importSVG.export(doc.Objects, "%s/%s_%s.svg" %
+                             (config['app']['export'], label, data_hash))
+            result['exports'][label].append(
+                {'name': 'svg', 'url': '%s/%s_%s.svg' %
+                    (config['app']['export'][pwd_len:], label, data_hash)})
             log.info("Exported 'SVG'")
         if 'json' in result['formats'] and label == SWITCH_LAYER:
-            with open("%s/%s_%s.json" % (config['app']['export'], label, data_hash), 'w') as json_file:
+            with open("%s/%s_%s.json" % (config['app']['export'], label,
+                      data_hash), 'w') as json_file:
                 json_file.write(repr(self))
-            result['exports'][label].append({'name': 'json', 'url': '%s/%s_%s.json' % (config['app']['export'][pwd_len:], label, data_hash)})
+            result['exports'][label].append(
+                {'name': 'json', 'url': '%s/%s_%s.json' %
+                    (config['app']['export'][pwd_len:], label, data_hash)})
             log.info("Exported 'JSON'")
         # remove all the documents from the view before we move on
         for o in doc.Objects:
@@ -613,10 +659,11 @@ class Plate(object):
 # take the input from the webserver and instantiate and draw the plate
 def build(data_hash, data, config):
     # create the result object
+    #   Have to use a copy in case we remove SVG later
     result = {}
     result['has_layers'] = False
     result['plates'] = [SWITCH_LAYER]
-    result['formats'] = cfg['app']['formats'][:]  # Have to use a copy in case we remove SVG later
+    result['formats'] = cfg['app']['formats'][:]
     result['exports'] = {}
     p = Plate()
     if 'case-type' in data:
