@@ -27,7 +27,6 @@ $ sudo add-apt-repository ppa:freecad-maintainers/freecad-daily
 $ sudo apt-get update
 $ sudo apt-get upgrade
 $ sudo apt-get -y install build-essential freecad git python-dev python-pip unzip
-$ sudo pip install --requirement requirements.txt
 ```
 
 ### Get the source and install python dependancies
@@ -79,7 +78,7 @@ $ ifconfig
 ## License
 
 ```
-kb_builder builts keyboard plate and case CAD files using JSON input.
+kb_builder builds keyboard plate and case CAD files using JSON input.
 
 Copyright (C) 2015  Will Stevens (swill)
 
