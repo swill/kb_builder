@@ -19,10 +19,6 @@ sudo pip install --requirement kb_builder/requirements.txt
 # Fetch the Draft-dxf-importer.
 sudo git clone --branch 1.38 --single-branch --depth 1 \
   https://github.com/yorikvanhavre/Draft-dxf-importer /root/.FreeCAD
-#sudo apt-get --yes install unzip
-#sudo wget --progress=bar:force --output-document - \
-#  https://github.com/yorikvanhavre/Draft-dxf-importer/archive/1.38.zip |\
-#  unzip -d /root/.FreeCAD/Draft-dxf-importer-1.38
 SCRIPT
 
 Vagrant.configure(2) do |config|
