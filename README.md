@@ -22,19 +22,15 @@ Install this one a Ubuntu VM on your laptop with either VirtualBox or VMware Fus
 
 ### Install the OS dependencies
 ```
-$ sudo apt-get install software-properties-common
-$ sudo add-apt-repository ppa:freecad-maintainers/freecad-daily
+$ sudo add-apt-repository --yes ppa:freecad-maintainers/freecad-daily
 $ sudo apt-get update
-$ sudo apt-get upgrade
-$ sudo apt-get -y install build-essential freecad git python-dev python-pip unzip
-$ sudo pip install --requirement requirements.txt
+$ sudo apt-get --yes install build-essential python-dev python-pip git freecad unzip
 ```
 
 ### Get the source and install python dependancies
 ```
 $ git clone https://github.com/swill/kb_builder.git
-$ cd ~/kb_builder
-$ sudo pip install --requirement requirements.txt
+$ sudo pip install --requirement kb_builder/requirements.txt
 ```
 
 ### Install the Draft-dxf-importer
@@ -79,7 +75,7 @@ $ ifconfig
 ## License
 
 ```
-kb_builder builts keyboard plate and case CAD files using JSON input.
+kb_builder builds keyboard plate and case CAD files using JSON input.
 
 Copyright (C) 2015  Will Stevens (swill)
 

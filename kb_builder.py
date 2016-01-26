@@ -47,15 +47,16 @@ class IndexHandler(tornado.web.RequestHandler):
         logging.info("Processing: %s" % (data_hash))
         cad = builder.build(data_hash, data, config)
         logging.info("Finished: %s" % (data_hash))
-        logging.info("Processing took: {0:.2f} seconds".format(time.time()-build_start))
+        logging.info("Processing took: {0:.2f} seconds".format(time.time() -
+                                                               build_start))
         self.write(cad)
 
 
 def make_app():
     settings = {
-        'template_path':'templates',
-        'static_path':config['app']['static'],
-        'debug':config['app']['debug']
+        'template_path': 'templates',
+        'static_path': config['app']['static'],
+        'debug': config['app']['debug']
     }
     return tornado.web.Application([
         (r"/", IndexHandler)
