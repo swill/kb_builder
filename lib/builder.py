@@ -26,13 +26,6 @@ import sys
 
 from config import config as cfg
 
-import FreeCAD
-import cadquery
-import importDXF
-import importSVG
-import Mesh
-import Part
-
 log = logging.getLogger()
 
 if 'lib' in cfg and 'freecad_lib_dir' in cfg['lib'] and \
@@ -44,6 +37,13 @@ if 'lib' in cfg and 'freecad_mod_dir' in cfg['lib'] and \
         mod_path = os.path.join(cfg['lib']['freecad_mod_dir'], mod)
         if os.path.isdir(mod_path):
             sys.path.append(mod_path)
+
+import FreeCAD
+import cadquery
+import importDXF
+import importSVG
+import Mesh
+import Part
 
 SWITCH_LAYER = 'switch'
 BOTTOM_LAYER = 'bottom'
