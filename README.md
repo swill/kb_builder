@@ -20,21 +20,28 @@ This tool is implemented as a webserver and exposes a UI to be consumed in the b
 
 Install this one a Ubuntu VM on your laptop with either VirtualBox or VMware Fusion.  I have had trouble getting the FreeCAD lib to work correctly on Mac OSX, so if you get it working, please contribute some documentation.  For now I only describe Ubuntu install instructions.
 
+
 ### Install the OS dependencies
+
 ```
 $ sudo add-apt-repository --yes ppa:freecad-maintainers/freecad-daily
 $ sudo apt-get update
 $ sudo apt-get --yes install build-essential python-dev python-pip git freecad unzip
 ```
 
+
 ### Get the source and install python dependancies
+
 ```
 $ git clone https://github.com/swill/kb_builder.git
 $ sudo pip install --requirement kb_builder/requirements.txt
 ```
 
+
 ### Install the Draft-dxf-importer
-This is a quick start guide.  Review the [full docs here](https://github.com/yorikvanhavre/Draft-dxf-importer)
+
+This is a quick start guide.  Review the [full docs
+here](https://github.com/yorikvanhavre/Draft-dxf-importer)
 
 ```
 $ cd ~/
@@ -52,24 +59,34 @@ $ cp Draft-dxf-importer-1.38/* /root/.FreeCAD/
 	#	not your users because we are running with 'sudo'
 ```
 
+
 ### Run the source
+
 ```
 $ cd ~/kb_builder
 $ sudo ./kb_builder.py
 ```
 
-### Accessing the UI
-I am assuming most people will be using VirtualBox, so here are some additional details for viewing the UI from the host machine as well as instructions for how to SSH into the box.
+
+### Testing Things Out Locally
+
+If you are just trying to run things locally on your workstation to confirm
+code changes, you should install VirtualBox and Vagrant there and then type:
 
 ```
-# Power off the VM.
-# Set: VM > Settings > Network > Attached to: => Bridged Adapter
-# Power on the VM.
-$ ifconfig
-	# record the <IP> address
-# The web UI will be available on: http://<IP>
-# You can SSH to the VM with: ssh your_user@<IP>
-``` 
+host$ vagrant up
+...
+host$ vagrant ssh
+guest$ sudo kb_builder/kb_builder.py
+```
+
+* https://virtualbox.org
+* https://vagrantup.com
+
+There will be a copy of code checked out into the home directory on the guest
+VM which you may modify to test out your changes.  You may then confirm that
+things are running from your host machine by pointing your browser at
+"http://localhost:8080".
 
 
 ## License
@@ -77,7 +94,7 @@ $ ifconfig
 ```
 kb_builder builds keyboard plate and case CAD files using JSON input.
 
-Copyright (C) 2015  Will Stevens (swill)
+Copyright (C) 2015-2016  Will Stevens (swill)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
