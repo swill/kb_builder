@@ -77,7 +77,8 @@ code changes, you should install VirtualBox and Vagrant there and then type:
 host$ vagrant up
 ...
 host$ vagrant ssh
-guest$ sudo kb_builder/kb_builder.py
+guest$ cd kb_builder
+guest$ sudo ./kb_builder.py
 ```
 
 * https://virtualbox.org
