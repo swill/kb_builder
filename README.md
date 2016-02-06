@@ -23,7 +23,7 @@ Install this one a Ubuntu VM on your laptop with either VirtualBox or VMware Fus
 
 ### Install the OS dependencies
 
-```
+``` bash
 $ sudo add-apt-repository --yes ppa:freecad-maintainers/freecad-daily
 $ sudo apt-get update
 $ sudo apt-get --yes install build-essential python-dev python-pip git freecad unzip
@@ -32,7 +32,7 @@ $ sudo apt-get --yes install build-essential python-dev python-pip git freecad u
 
 ### Get the source and install python dependancies
 
-```
+``` bash
 $ git clone https://github.com/swill/kb_builder.git
 $ sudo pip install --requirement kb_builder/requirements.txt
 ```
@@ -43,7 +43,7 @@ $ sudo pip install --requirement kb_builder/requirements.txt
 This is a quick start guide.  Review the [full docs
 here](https://github.com/yorikvanhavre/Draft-dxf-importer)
 
-```
+``` bash
 $ cd ~/
 $ sudo freecad
 	# 'sudo' so it creates the correct '/root/.FreeCAD' directory
@@ -62,32 +62,31 @@ $ cp Draft-dxf-importer-1.38/* /root/.FreeCAD/
 
 ### Run the source
 
-```
-$ cd ~/kb_builder
-$ sudo ./kb_builder.py
+``` bash
+$ cd ~/kb_builder && sudo ./kb_builder.py
 ```
 
 
 ### Testing Things Out Locally
 
 If you are just trying to run things locally on your workstation to confirm
-code changes, you should install VirtualBox and Vagrant there and then type:
+code changes, you should install [VirtualBox](https://virtualbox.org) and 
+[Vagrant](https://vagrantup.com) there and then type:
 
-```
+``` bash
 host$ vagrant up
-...
 host$ vagrant ssh
-guest$ cd kb_builder
-guest$ sudo ./kb_builder.py
+guest$ cd kb_builder && sudo ./kb_builder.py
+# access the kb_builder on the host at http://localhost:8080
+# to stop the kb_builder do `Ctrl + \` in the guest terminal
+guest$ exit
+host$ vagrant halt
 ```
-
-* https://virtualbox.org
-* https://vagrantup.com
 
 There will be a copy of code checked out into the home directory on the guest
 VM which you may modify to test out your changes.  You may then confirm that
 things are running from your host machine by pointing your browser at
-"http://localhost:8080".
+`http://localhost:8080`.
 
 
 ## License
