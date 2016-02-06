@@ -29,19 +29,27 @@ The easiest way to run this application is locally on a
 **Instructions**
 
 ``` bash
-host$ vagrant up
-host$ vagrant ssh
-guest$ cd kb_builder && sudo ./kb_builder.py
+$  # = host
+$$ # = guest vm
+
+# get the kb_builder
+$ git clone https://github.com/swill/kb_builder.git
+$ cd kb_builder
+
+# deploy kb_builder
+$ vagrant up
+$ vagrant ssh
+$$ cd kb_builder && sudo ./kb_builder.py
 # access the kb_builder on the host at http://localhost:8080
 
 # to stop the kb_builder do `Ctrl + \` in the guest terminal, then
-guest$ exit
-host$ vagrant halt
+$$ exit
+$ vagrant halt
 ```
 
-There will be a copy of code checked out into the home directory on the `guest`
-VM which you can use to hack on and test any changes.  The builder
-will be accessible on the `host` machine at the URL `http://localhost:8080`.
+On the `guest` VM you will have a copy of code checked out in the
+home directory.  Test changes and hack the source here. The builder
+is accessible on the `host` machine at the URL `http://localhost:8080`.
 
 
 
@@ -49,8 +57,8 @@ will be accessible on the `host` machine at the URL `http://localhost:8080`.
 
 This tool is easiest to run on a Ubuntu VM.  You can run it on your laptop with
 either VirtualBox or VMware Fusion.  I have had trouble getting the FreeCAD lib
-to work correctly on Mac OSX, so if you get it working, please contribute some
-documentation.  For now I only describe Ubuntu install instructions.
+to work correctly on Mac OSX natively, so if you get it working, please contribute
+documentation.  Here are the Ubuntu install instructions.
 
 
 **Install the OS dependencies**
