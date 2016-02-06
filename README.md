@@ -18,10 +18,42 @@ This tool is implemented as a webserver and exposes a UI to be consumed in the b
 
 ## Installation and Configuration
 
-Install this one a Ubuntu VM on your laptop with either VirtualBox or VMware Fusion.  I have had trouble getting the FreeCAD lib to work correctly on Mac OSX, so if you get it working, please contribute some documentation.  For now I only describe Ubuntu install instructions.
+
+### Quick Start Guide
+
+The easiest way to run this application is locally on a
+[VirtualBox](https://virtualbox.org) VM that is deployed with
+[Vagrant](https://vagrantup.com).
 
 
-### Install the OS dependencies
+**Instructions**
+
+``` bash
+host$ vagrant up
+host$ vagrant ssh
+guest$ cd kb_builder && sudo ./kb_builder.py
+# access the kb_builder on the host at http://localhost:8080
+
+# to stop the kb_builder do `Ctrl + \` in the guest terminal, then
+guest$ exit
+host$ vagrant halt
+```
+
+There will be a copy of code checked out into the home directory on the `guest`
+VM which you can use to hack on and test any changes.  The builder
+will be accessible on the `host` machine at the URL `http://localhost:8080`.
+
+
+
+### Manual Install
+
+This tool is easiest to run on a Ubuntu VM.  You can run it on your laptop with
+either VirtualBox or VMware Fusion.  I have had trouble getting the FreeCAD lib
+to work correctly on Mac OSX, so if you get it working, please contribute some
+documentation.  For now I only describe Ubuntu install instructions.
+
+
+**Install the OS dependencies**
 
 ``` bash
 $ sudo add-apt-repository --yes ppa:freecad-maintainers/freecad-daily
@@ -30,7 +62,7 @@ $ sudo apt-get --yes install build-essential python-dev python-pip git freecad u
 ```
 
 
-### Get the source and install python dependancies
+**Get the source and install python dependancies**
 
 ``` bash
 $ git clone https://github.com/swill/kb_builder.git
@@ -38,7 +70,7 @@ $ sudo pip install --requirement kb_builder/requirements.txt
 ```
 
 
-### Install the Draft-dxf-importer
+**Install the Draft-dxf-importer**
 
 This is a quick start guide.  Review the [full docs
 here](https://github.com/yorikvanhavre/Draft-dxf-importer)
@@ -60,33 +92,11 @@ $ cp Draft-dxf-importer-1.38/* /root/.FreeCAD/
 ```
 
 
-### Run the source
+**Run the source**
 
 ``` bash
 $ cd ~/kb_builder && sudo ./kb_builder.py
 ```
-
-
-### Testing Things Out Locally
-
-If you are just trying to run things locally on your workstation to confirm
-code changes, you should install [VirtualBox](https://virtualbox.org) and 
-[Vagrant](https://vagrantup.com) there and then type:
-
-``` bash
-host$ vagrant up
-host$ vagrant ssh
-guest$ cd kb_builder && sudo ./kb_builder.py
-# access the kb_builder on the host at http://localhost:8080
-# to stop the kb_builder do `Ctrl + \` in the guest terminal
-guest$ exit
-host$ vagrant halt
-```
-
-There will be a copy of code checked out into the home directory on the guest
-VM which you may modify to test out your changes.  You may then confirm that
-things are running from your host machine by pointing your browser at
-`http://localhost:8080`.
 
 
 ## License
